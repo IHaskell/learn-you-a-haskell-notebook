@@ -1,0 +1,8 @@
+notebook/*.txt
+notebook/Geometry.dyn_hi
+notebook/Geometry.dyn_o
+notebook/Geometry.hi
+notebook/Geometry.hs
+notebook/Geometry.o
+notebook/Geometry/
+notebook/.ipynb_checkpoints

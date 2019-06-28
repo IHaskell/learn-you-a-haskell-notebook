@@ -1,8 +1,0 @@
-*.txt
-Geometry.dyn_hi
-Geometry.dyn_o
-Geometry.hi
-Geometry.hs
-Geometry.o
-Geometry/
-.ipynb_checkpoints
