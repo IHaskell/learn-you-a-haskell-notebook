@@ -18,7 +18,7 @@ Miran Lipovača wrote this book and gave it to the world under a [Creative Commo
 
 Thanks also to Paul Vorbach for <https://github.com/pvorb/learn-you-a-haskell>.
 
-# How to read locally
+# How to run locally
 
 ```bash
 git clone https://github.com/jamesdbrock/learn-you-a-haskell-notebook.git
@@ -33,3 +33,13 @@ docker run --rm \
 ```
 
 [http://localhost:8888?token=x](http://localhost:8888?token=x)
+
+# How to edit notebooks
+
+If you make an improvement to a notebook and you want to commit the changes, then
+
+1. Maximize the browser window to full screen width, because cell horizontal scroll bar visibility gets saved in the notebook.
+
+2. Run -> Restart kernel and Run All Cells...
+
+3. Save the notebook.
