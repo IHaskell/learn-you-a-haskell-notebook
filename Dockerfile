@@ -6,7 +6,7 @@
 #     docker run --rm -p 8888:8888 --name learn-you-a-haskell --env JUPYTER_TOKEN=x learn-you-a-haskell:latest
 #
 
-FROM crosscompass/ihaskell-notebook:c1e0e0b3a6b1
+FROM crosscompass/ihaskell-notebook:e763dc764d90
 
 USER root
 
