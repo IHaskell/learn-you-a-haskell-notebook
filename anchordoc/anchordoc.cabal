@@ -21,3 +21,7 @@ executable anchordoc
                      , parsec
                      , split
                      , wreq
+                     , aeson
+                     , text
+                     , lens
+                     , lens-aeson
