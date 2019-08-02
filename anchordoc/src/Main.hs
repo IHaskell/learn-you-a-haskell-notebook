@@ -31,7 +31,7 @@ import Data.Text (unpack)
 main :: IO ()
 main = do
   -- input <- getContents
-  let input = "`tk` `tk2` ` __`TT`__ `T.D` `T dd` "
+  let input = "`==` `Eq` ` __`Ord`__ `T.D` `T dd` "
   let ss = split (oneOf "`") input
   -- case (parse codeToken "" input) of
   --   Left err -> print err
@@ -43,7 +43,7 @@ replace :: [String] -> IO String
 --- replace [s1] = [s1]
 --- replace [s1,s2] = [s1,s2]
 replace ("`":token:"`":ss) =
-  if (all (`elem` (['a'..'z'] ++ ['A'..'Z'] ++ ".")) token)
+  if (all (`elem` (['a'..'z'] ++ ['A'..'Z'] ++ ".<>+=-$")) token)
     then do
       -- https://github.com/ndmitchell/hoogle/blob/master/docs/API.md#json-api
       --
