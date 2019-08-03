@@ -45,17 +45,18 @@ import Control.Monad.Trans.Class
 
 main :: IO ()
 main = do
-    -- input <- getContents
+    input <- getContents
     -- let input = "`==` `Eq` ` __`Ord`__ `T.D` `T dd` "
-    let input = "  `==` `Eq` ` ` __`Ord`__ `T.D` `T dd` "
+    -- let input = "  `==` `Eq` ` ` __`Ord`__ `T.D` `T dd` "
     case (parse (capture' backtickSymbol) "" input) of
         Left err -> print err
         Right groups -> do
-            print groups
-            putStr =<< fmap join (mapM replace groups)
+            -- print groups
+            -- putStr =<< fmap join (mapM replace groups)
+            putStr =<< fmap unlines (mapM replace groups)
 
 replace :: Either String (String, (String, String, String)) -> IO String
-replace (Left cap) = return cap
+replace (Left cap) = return "" -- cap
 replace (Right (cap, (tickOpen, symbol, tickClose))) =
     --- runMaybeT $ fromMaybe cap $ do
     -- If anything doesn't work out then just use the original capture `cap`.
@@ -64,6 +65,7 @@ replace (Right (cap, (tickOpen, symbol, tickClose))) =
         -- guard $ all (`elem` (['a'..'z'] ++ ['A'..'Z'] ++ ".<>+=-$/:'")) token
         -- MaybeT $ return $ guard $ flip all token $ flip elem $ ['a'..'z'] ++ ['A'..'Z'] ++ ".<>+=-$/:'"
 
+        lift $ putStrLn $ "query " ++ symbol
         -- Query hoogle for the symbol, only in the base package, only 1 result.
         hoogleResult <- lift $ get $  "https://hoogle.haskell.org?mode=json&hoogle="
                             ++ symbol
