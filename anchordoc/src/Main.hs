@@ -19,41 +19,17 @@ import Data.Maybe
 import Control.Monad.Trans.Maybe
 import Control.Monad.Trans.Class
 
--- main :: IO ()
--- main = do
---   let input = "`==` `Eq` ` __`Ord`__ `T.D` `T dd` "
---   let ss = split (oneOf "`") input
---   print ss
---   print =<< replace ss
-
---- replace' :: [String] -> IO String
---- --- replace [s1] = [s1]
---- --- replace [s1,s2] = [s1,s2]
---- replace' ("`":token:"`":ss) =
----   if (all (`elem` (['a'..'z'] ++ ['A'..'Z'] ++ ".<>+=-$/:'")) token)
----     then do
----       -- https://github.com/ndmitchell/hoogle/blob/master/docs/API.md#json-api
----       --
----       r <- get $ "https://hoogle.haskell.org?mode=json&hoogle=" ++ token ++ "&start=1&count=1"
----       case (r ^.. responseBody . nth 0 . key "url" . _String) of
----         [hoogleurl] -> (("[`" ++ token ++ "`](" ++ unpack hoogleurl ++ ")") ++) <$> replace ss
----         _ -> (("`" ++ token) ++) <$> replace ("`" : ss)
----       --- (("[`" ++ token ++ "`](http:hackage.haskell.org)") ++) <$> replace ss
----     else (("`" ++ token) ++) <$> replace ("`" : ss)
---- replace' (x:xs) = (x ++) <$> replace xs
---- replace' [] = return ""
-
 main :: IO ()
 main = do
     input <- getContents
     let inputtest = "`==` `Eq` ` __`Ord`__ `T.D` `T dd` "
     -- let inputtest = "  `==` `Eq` ` ` __`Ord`__ `T.D` `T dd` "
-    --- case (parse (capture' backtickSymbol >> many anySingle) "" inputtest) of
+    --- case (parse (finall backtickSymbol >> many anySingle) "" inputtest) of
     ---     Left err -> print err
     ---     Right r -> print r
     --- mzero
 
-    case (parse (capture' backtickSymbol) "" input) of
+    case (parse (findall backtickSymbol) "" input) of
         Left err -> print err
         Right groups -> do
             -- print groups
@@ -65,6 +41,7 @@ replace (Left cap) = return "" -- cap
 replace (Right (cap, (tickOpen, symbol, tickClose))) =
     --- runMaybeT $ fromMaybe cap $ do
     -- If anything doesn't work out then just use the original capture `cap`.
+    -- TODO don't use runMaybeT
     fmap (fromMaybe cap) $ runMaybeT $ do
         -- Bail out if this doesn't look like a legitimate Haskell token
         -- guard $ all (`elem` (['a'..'z'] ++ ['A'..'Z'] ++ ".<>+=-$/:'")) token
@@ -85,41 +62,94 @@ replace (Right (cap, (tickOpen, symbol, tickClose))) =
 type Parser = Parsec Void String
 
 
+-- Parse something that looks like a symbol from Prelude in backticks.
 backtickSymbol :: Parser (String, String, String)
 backtickSymbol = do
     tickOpen  <- chunk "`"
-    --- token     <- Text.Megaparsec.some $ Text.Megaparsec.noneOf ['`',' ']
     symbol     <- Text.Megaparsec.some $ Text.Megaparsec.oneOf (['a'..'z'] ++ ['A'..'Z'] ++ ".<>+=-$/:'" :: String)
     tickClose <- chunk "`"
     return (tickOpen, symbol, tickClose)
 
-capture :: Parser a -> Parser [Either String (String, a)]
-capture group = do
-    initmatch <- fmap join $ many $ try $ do
-        (nomatch, yesmatch) <- manyTill_ anySingle (match group)
-        case nomatch of
-          [] -> return [Right yesmatch]
-          _  -> return [Left nomatch, Right yesmatch]
-    tailmatch <- many anySingle
-    case tailmatch of
-      [] -> return initmatch
-      _ -> return $ initmatch <> [Left tailmatch]
-  where
-    -- https://hackage.haskell.org/package/parser-combinators-1.2.0/docs/src/Control.Monad.Combinators.html#manyTill_
-    manyTill_ :: MonadPlus m => m a -> m end -> m ([a], end)
-    manyTill_ p end = go id
-      where
-        go f = do
-          done <- optional end
-          case done of
-            Just done' -> return (f [], done')
-            Nothing  -> do
-              x <- p
-              go (f . (x:))
 
-
-capture' :: forall a. Parser a -> Parser [Either String (String, a)]
-capture' group = do
+-- Find and parse all of the non-overlapping substrings of a string which match
+-- a pattern given by a parser.
+--
+-- This is a parser combinator which can be used for pattern capture
+-- situations similar to when one would use the Python
+-- [`re.findall`](https://docs.python.org/3/library/re.html#re.findall)
+-- or
+-- Unix [`grep`](https://www.gnu.org/software/grep/).
+--
+-- This combinator can also be used as a stream editor, in situations
+-- when one would use Python
+-- [`re.sub`](https://docs.python.org/3/library/re.html#re.sub)
+-- , or Unix
+-- [`sed` substitute](https://www.gnu.org/software/sed/manual/html_node/The-_0022s_0022-Command.html),
+-- or
+-- [`awk`](https://www.gnu.org/software/gawk/manual/gawk.html).
+--
+-- The `findall` function takes a pattern parser as an argument, and returns a
+-- parser which will consume an entire input stream and find all the places
+-- in the input stream which match the pattern.
+-- The result is a list of `Right` pattern matches and `Left` unmatched sections
+-- of the input stream.
+-- The result can be examined for parsed matches, or reconstructed
+-- into an edited output stream.
+--
+-- Examples
+--
+-- Given a parser for numbers in simple scientific notation like `"1E2"`:
+--
+--     scinum :: Parsec Void String (Double, Integer)
+--     scinum = do
+--         m <- some digitChar
+--         string "E"
+--         e <- some digitChar
+--         return (read m, read e)
+--
+--     import Data.Either
+--     import Data.Maybe
+--
+--     let input = "1E2 xxx 2E3"
+--
+-- 1. Parse the structure of the entire input string:
+--
+--        print $ fromJust $ parseMaybe (findall scinum) input
+--
+--    Entire input structure:
+--
+--        [Right ("1E2",(1.0,2)), Left " xxx ", Right ("2E3",(2.0,3))]
+--
+-- 2. Capture the parsed pattern matches:
+--
+--        print $ fmap snd
+--              $ rights
+--              $ fromJust $ parseMaybe (findall scinum) input
+--
+--    Parsed pattern matches:
+--
+--        [(1.0,2), (2.0,3)]
+--
+-- 3. Replace all of the matched numbers with decimal notation:
+--
+--        print $ foldMap (either id (\(_,(m,e)) -> show $ m * (10 ^^ e)))
+--              $ fromJust $ parseMaybe (findall scinum) input
+--
+--    Input string with scientific notation replaced by decimal notation:
+--
+--        "100.0 xxx 2000.0"
+--
+-- Make sure we test that the parser is correctly consuming its input.
+--
+-- Make sure we test that the parser is correctly calculating its position.
+--
+-- Make sure we test that the parser will continue in event of a parse that
+-- fails on an operation like `read`.
+--
+-- TODO We actually don't need to call `match`, we could let the user choose
+-- to call `match`.
+findall :: forall a. Parser a -> Parser [Either String (String, a)]
+findall pattern = do
    st0 <- getParserState
    let (st', caps) = loop st0
    updateParserState (const st') -- Update state so Parser has consumed all input.
@@ -128,16 +158,23 @@ capture' group = do
     -- take a parser state and build up a list of capture results
     loop :: State String -> (State String, [(Either String (String, a))])
     loop st =
-        case (runParser' (match group) st) of
+        case (runParser' (match pattern) st) of
             (_, Left _) ->
-                -- no match, so add the first character to the Left non-matching
+                -- No match, so add the first character to the Left non-matching
                 -- results and then step forward and loop.
+                -- TODO use `token` instead of `anySingle`
                 case (runParser' (anySingle :: Parser Char) st) of
-                    (stIncrem, Left _) -> (stIncrem, []) -- Can't get a single char, so end of input.
-                    (stIncrem, Right nonMatchChar) ->
-                        -- now collect nonMatchChar and loop with stIncrem
+                    (stIncrem, Left _) ->
+                        -- Failed to get a single char, so end of input stream.
+                        (stIncrem, [])
+                    (stIncrem, Right oneChar) ->
+                        -- now collect the oneChar and loop with stIncrem
                         case (loop stIncrem) of
-                            (st', ((Left cap):caps)) -> (st', (Left (nonMatchChar:cap)):caps)
-                            (st', caps) -> (st', (Left (nonMatchChar:[])):caps)
-            (stNew, Right mach) -> fmap ((Right mach):) (loop stNew)
+                            (st', ((Left cap):caps)) ->
+                                (st', (Left (oneChar:cap)):caps)
+                            (st', caps) ->
+                                (st', (Left (oneChar:[])):caps)
+            (stMatch, Right mach) ->
+                -- Found a match, add to results and loop.
+                fmap ((Right mach):) (loop stMatch)
 
