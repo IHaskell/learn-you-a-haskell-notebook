@@ -46,8 +46,13 @@ import Control.Monad.Trans.Class
 main :: IO ()
 main = do
     input <- getContents
-    -- let input = "`==` `Eq` ` __`Ord`__ `T.D` `T dd` "
-    -- let input = "  `==` `Eq` ` ` __`Ord`__ `T.D` `T dd` "
+    let inputtest = "`==` `Eq` ` __`Ord`__ `T.D` `T dd` "
+    -- let inputtest = "  `==` `Eq` ` ` __`Ord`__ `T.D` `T dd` "
+    case (parse (capture' backtickSymbol >> many anySingle) "" inputtest) of
+        Left err -> print err
+        Right r -> print r
+    mzero
+
     case (parse (capture' backtickSymbol) "" input) of
         Left err -> print err
         Right groups -> do
@@ -113,25 +118,25 @@ capture group = do
               go (f . (x:))
 
 
+-- Do we have to return a Parser with a State which has consumed all its input? Yeah probobly.
 capture' :: forall a. Parser a -> Parser [Either String (String, a)]
 capture' group = do
    st0 <- getParserState
    return $ loop st0
   where
+    -- take a parser state and build up a list of capture results
     loop :: State String -> [(Either String (String, a))]
     loop st =
-       let (stNew, result) = runParser' (match group) st
-       in
-       case result of
-            Left _ ->
-                let (stIncrem, resultIncrem) = runParser' (anySingle :: Parser Char) st
-                in
-                case resultIncrem of
-                    Left _ -> []-- Can't get a single char, so end of input
-                    Right nonMatchChar -> -- now collect nonMatchChar and loop with stIncrem
-                      case (loop stIncrem) of
-                        ((Left s):ss) -> (Left (nonMatchChar:s)):ss
-                        ss -> (Left (nonMatchChar:[])):ss
-            Right mach -> -- now collect the mach and loop with stNew
-                (Right mach):(loop stNew)
+        case (runParser' (match group) st) of
+            (_, Left _) ->
+                -- no match, so add the first character to the Left non-matching
+                -- results and then step forward and loop.
+                case (runParser' (anySingle :: Parser Char) st) of
+                    (_, Left _) -> [] -- Can't get a single char, so end of input. Do we have to updateParserState here?
+                    (stIncrem, Right nonMatchChar) ->
+                        -- now collect nonMatchChar and loop with stIncrem
+                        case (loop stIncrem) of
+                            ((Left s):ss) -> (Left (nonMatchChar:s)):ss
+                            ss -> (Left (nonMatchChar:[])):ss
+            (stNew, Right mach) -> (Right mach):(loop stNew)
 
