@@ -48,10 +48,10 @@ main = do
     input <- getContents
     let inputtest = "`==` `Eq` ` __`Ord`__ `T.D` `T dd` "
     -- let inputtest = "  `==` `Eq` ` ` __`Ord`__ `T.D` `T dd` "
-    case (parse (capture' backtickSymbol >> many anySingle) "" inputtest) of
-        Left err -> print err
-        Right r -> print r
-    mzero
+    --- case (parse (capture' backtickSymbol >> many anySingle) "" inputtest) of
+    ---     Left err -> print err
+    ---     Right r -> print r
+    --- mzero
 
     case (parse (capture' backtickSymbol) "" input) of
         Left err -> print err
@@ -118,25 +118,26 @@ capture group = do
               go (f . (x:))
 
 
--- Do we have to return a Parser with a State which has consumed all its input? Yeah probobly.
 capture' :: forall a. Parser a -> Parser [Either String (String, a)]
 capture' group = do
    st0 <- getParserState
-   return $ loop st0
+   let (st', caps) = loop st0
+   updateParserState (const st') -- Update state so Parser has consumed all input.
+   return caps
   where
     -- take a parser state and build up a list of capture results
-    loop :: State String -> [(Either String (String, a))]
+    loop :: State String -> (State String, [(Either String (String, a))])
     loop st =
         case (runParser' (match group) st) of
             (_, Left _) ->
                 -- no match, so add the first character to the Left non-matching
                 -- results and then step forward and loop.
                 case (runParser' (anySingle :: Parser Char) st) of
-                    (_, Left _) -> [] -- Can't get a single char, so end of input. Do we have to updateParserState here?
+                    (stIncrem, Left _) -> (stIncrem, []) -- Can't get a single char, so end of input.
                     (stIncrem, Right nonMatchChar) ->
                         -- now collect nonMatchChar and loop with stIncrem
                         case (loop stIncrem) of
-                            ((Left s):ss) -> (Left (nonMatchChar:s)):ss
-                            ss -> (Left (nonMatchChar:[])):ss
-            (stNew, Right mach) -> (Right mach):(loop stNew)
+                            (st', ((Left cap):caps)) -> (st', (Left (nonMatchChar:cap)):caps)
+                            (st', caps) -> (st', (Left (nonMatchChar:[])):caps)
+            (stNew, Right mach) -> fmap ((Right mach):) (loop stNew)
 
