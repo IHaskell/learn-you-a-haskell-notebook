@@ -14,11 +14,13 @@ import Data.Text (unpack)
 
 import Text.Megaparsec
 import Text.Megaparsec.Char
-import Data.Void
-import Control.Monad
-import Data.Maybe
 import Control.Monad.Trans.Maybe
 import Control.Monad.Trans.Class
+import Data.Void
+import Control.Monad
+import Data.Either
+import Data.Maybe
+import Data.Bifunctor
 import Data.Proxy
 
 main :: IO ()
@@ -155,38 +157,39 @@ backtickSymbol = do
 -- We need the Semigroup instance for `s` because a Megaparsec Stream has
 -- methods for unconsing the Stream, but no methods for consing the Stream,
 -- and findall needs to build an output stream, not just parse the input stream.
-findall :: forall e s m a. (MonadParsec e s m, Semigroup s) => m a -> m [Either (Tokens s) (Tokens s, a)]
+findall :: forall e s m a. (MonadParsec e s m) => m a -> m [Either (Tokens s) (Tokens s, a)]
 -- findall :: forall e s m a. MonadParsec e s m => m a -> m [Either (Tokens s) (Tokens s, a)]
 -- findall :: forall a. ParsecT e s m a -> ParsecT e s m [Either String (String, a)]
 findall pattern = do
-   st0 <- getParserState
+    (fmap.fmap) (first $ tokensToChunk (Proxy::Proxy s)) loop
+   -- st0 <- getParserState
    -- (st', caps) <- loop st0
-   (st', caps) <- runParserT'
-   updateParserState (const st') -- Update state so Parser has consumed all input.
-   return caps
+   -- (st', caps) <- runParserT'
+   --updateParserState (const st') -- Update state so Parser has consumed all input.
+   -- return caps
   where
     -- take a parser state and build up a list of capture results
     -- loop :: State s -> m (State s, [(Either (Tokens s) (Tokens s, a))])
-    loop st =
-        --- case (runParserT' (match pattern) st) of
-        (runParserT' (match pattern) st) >>= \case
-            (_, Left _) ->
-                -- No match, so add the first character to the Left non-matching
-                -- results and then step forward and loop.
-                -- TODO use `token` instead of `anySingle`
-                (runParserT' anySingle st) >>= \case
-                    (stIncrem, Left _) ->
-                        -- Failed to get a single char, so end of input stream.
-                        return (stIncrem, [])
-                    (stIncrem, Right oneChar) ->
-                        -- now collect the oneChar and loop with stIncrem
-                        (loop stIncrem) >>= \case
-                            (st', ((Left cap):caps)) ->
-                                return (st', (Left (tokenToChunk (Proxy::Proxy s) oneChar <> cap)):caps)
-                            (st', caps) ->
-                                return (st', (Left (tokenToChunk (Proxy::Proxy s) oneChar)):caps)
-                        --TODO generalized Token cons instead of tokenToChunk?
-            (stMatch, Right mach) ->
-                -- Found a match, add to results and loop.
-                (fmap.fmap) ((Right mach):) (loop stMatch)
+    loop =
+        (observing eof) >>= \case
+            (Right _) -> return []
+            (Left _) ->
+                --- case (runParserT' (match pattern) st) of
+                (observing (try (match pattern))) >>= \case
+                    (Left _) ->
+                        -- No match, so add the first character to the Left non-matching
+                        -- results and then step forward and loop.
+                        -- TODO use `token` instead of `anySingle`
+                        anySingle >>= \ oneChar ->
+                                -- now collect the oneChar and loop with stIncrem
+                                loop >>= \case
+                                    ((Left cap):caps) ->
+                                        return (Left (oneChar:cap):caps)
+                                    caps ->
+                                        return (Left ([oneChar]):caps)
+                                --TODO generalized Token cons instead of tokenToChunk?
+                    (Right mach) ->
+                        -- Found a match, add to results and loop.
+                        fmap ((Right mach):) loop
+
 
