@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Main where
 
@@ -22,6 +23,8 @@ import Data.Either
 import Data.Maybe
 import Data.Bifunctor
 import Data.Proxy
+import Data.Foldable
+import Data.Traversable
 
 main :: IO ()
 main = do
@@ -192,4 +195,66 @@ findall pattern = do
                         -- Found a match, add to results and loop.
                         fmap ((Right mach):) loop
 
+
+-- two new functions:
+--
+
+-- | Separate and Capture
+-- Separate a stream into sections which match a pattern,
+-- and non-matching sections.
+sepCap
+    :: MonadParsec e s m
+    -- :: (MonadParsec e s m, Tokens s ~ s)
+    => m a
+    -> m [Either (Tokens s) a]
+    --- -> m [Either s a]
+sepCap = undefined
+
+findAll
+    --- :: forall e s m a. (MonadParsec e s m)
+    :: MonadParsec e s m
+    -- :: (MonadParsec e s m, Tokens s ~ s)
+    => m a
+    -> m [Either (Tokens s) (Tokens s, a)]
+    --- -> m [Either s (s, a)]
+findAll sep = sepCap (match sep)
+
+-- | Stream editor. Also can be considered "find-and-replace". Finds all
+-- of the sections of the stream which match the pattern `sep`, and replaces
+-- them with the result of the `editor` function.
+streamEdit
+    :: (MonadParsec e s m)
+    => m a
+        -- ^ The parser `sep` for the pattern of interest.
+    -> (a -> Tokens s -> Tokens s)
+        -- ^ The `editor` function. Takes a parsed result of `sep`, and
+        -- the section of the stream which was matched by the pattern `sep`,
+        -- and returns a new stream section for the replacement.
+    -> Tokens s
+    -> Tokens s
+streamEdit sep editor input = undefined
+--     foldMap (either id (uncurry $ flip editor))
+--         $ fromMaybe input $ parseMaybe (findAll sep) input
+
+--        print $ foldMap (either id (\(_,(m,e)) -> show $ m * (10 ^^ e)))
+--              $ fromJust $ parseMaybe (findall scinum) input
+
+-- | Same as `streamEdit`, but the `editor` function is in a monadic context.
+-- This allows the `editor` function to perform, for example, IO.
+streamEditT
+    :: forall e s m a. (Ord e, Stream s, Monad m, Monoid s, Tokens s ~ s)
+    => ParsecT e s m a
+        -- ^ The parser `sep` for the pattern of interest.
+    -> (a -> s -> m s)
+        -- ^ The `editor` function. Takes a parsed result of `sep`, and
+        -- the section of the stream which was matched by the pattern `sep`,
+        -- and returns a new stream section for the replacement.
+    -> s
+    -> m s
+streamEditT sep editor input = do
+    runParserT (findAll sep) "" input >>= \case
+        (Left _) -> return input
+        (Right r) -> fmap fold $ traverse (either return (uncurry $ flip editor)) r
+
+--- instance SemiGroup (Tokens String) where
 
