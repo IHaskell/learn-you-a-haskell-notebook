@@ -1,12 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE LambdaCase #-}
 
 module Main where
 
 -- https://stackoverflow.com/questions/18957873/haskell-parenthesis-matching-for-find-and-replace
 -- import Text.ParserCombinators.Parsec
 
-import Network.Wreq
+import Network.Wreq (get, responseBody)
 import Control.Lens
 import Data.Aeson.Lens
 import Data.Text (unpack)
@@ -18,6 +19,7 @@ import Control.Monad
 import Data.Maybe
 import Control.Monad.Trans.Maybe
 import Control.Monad.Trans.Class
+import Data.Proxy
 
 main :: IO ()
 main = do
@@ -148,33 +150,43 @@ backtickSymbol = do
 --
 -- TODO We actually don't need to call `match`, we could let the user choose
 -- to call `match`.
-findall :: forall a. Parser a -> Parser [Either String (String, a)]
+-- TODO generalize from Parser to Parsec
+--
+-- We need the Semigroup instance for `s` because a Megaparsec Stream has
+-- methods for unconsing the Stream, but no methods for consing the Stream,
+-- and findall needs to build an output stream, not just parse the input stream.
+findall :: forall e s m a. (MonadParsec e s m, Semigroup s) => m a -> m [Either (Tokens s) (Tokens s, a)]
+-- findall :: forall e s m a. MonadParsec e s m => m a -> m [Either (Tokens s) (Tokens s, a)]
+-- findall :: forall a. ParsecT e s m a -> ParsecT e s m [Either String (String, a)]
 findall pattern = do
    st0 <- getParserState
-   let (st', caps) = loop st0
+   -- (st', caps) <- loop st0
+   (st', caps) <- runParserT'
    updateParserState (const st') -- Update state so Parser has consumed all input.
    return caps
   where
     -- take a parser state and build up a list of capture results
-    loop :: State String -> (State String, [(Either String (String, a))])
+    -- loop :: State s -> m (State s, [(Either (Tokens s) (Tokens s, a))])
     loop st =
-        case (runParser' (match pattern) st) of
+        --- case (runParserT' (match pattern) st) of
+        (runParserT' (match pattern) st) >>= \case
             (_, Left _) ->
                 -- No match, so add the first character to the Left non-matching
                 -- results and then step forward and loop.
                 -- TODO use `token` instead of `anySingle`
-                case (runParser' (anySingle :: Parser Char) st) of
+                (runParserT' anySingle st) >>= \case
                     (stIncrem, Left _) ->
                         -- Failed to get a single char, so end of input stream.
-                        (stIncrem, [])
+                        return (stIncrem, [])
                     (stIncrem, Right oneChar) ->
                         -- now collect the oneChar and loop with stIncrem
-                        case (loop stIncrem) of
+                        (loop stIncrem) >>= \case
                             (st', ((Left cap):caps)) ->
-                                (st', (Left (oneChar:cap)):caps)
+                                return (st', (Left (tokenToChunk (Proxy::Proxy s) oneChar <> cap)):caps)
                             (st', caps) ->
-                                (st', (Left (oneChar:[])):caps)
+                                return (st', (Left (tokenToChunk (Proxy::Proxy s) oneChar)):caps)
+                        --TODO generalized Token cons instead of tokenToChunk?
             (stMatch, Right mach) ->
                 -- Found a match, add to results and loop.
-                fmap ((Right mach):) (loop stMatch)
+                (fmap.fmap) ((Right mach):) (loop stMatch)
 
