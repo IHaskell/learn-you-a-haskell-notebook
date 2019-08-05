@@ -258,3 +258,8 @@ streamEditT sep editor input = do
 
 --- instance SemiGroup (Tokens String) where
 
+-- this is actually the best solution
+-- let sed :: Parser a -> Parser [Either String (String, a)]
+-- -- let sed :: Parser a -> Parser [Either String a]
+--     sed p = do
+--         many $ fmap Right (try $ match p) <|> fmap (Left . return) anySingle
