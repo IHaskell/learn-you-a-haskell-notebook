@@ -203,12 +203,28 @@ findall pattern = do
 -- Separate a stream into sections which match a pattern,
 -- and non-matching sections.
 sepCap
-    :: MonadParsec e s m
+    :: forall e s m a. (MonadParsec e s m)
     -- :: (MonadParsec e s m, Tokens s ~ s)
     => m a
     -> m [Either (Tokens s) a]
     --- -> m [Either s a]
-sepCap = undefined
+sepCap sep = (fmap.fmap) (first $ tokensToChunk (Proxy::Proxy s))
+             $ fmap sequenceLeft $ many $ fmap Right (try sep) <|> fmap Left anySingle
+  where
+    -- sequenceLeft :: [Either a b] -> [Either [a] b]
+    -- sequenceLeft (Left l1:Left l2:xs) = Left (l1:l2:ls):sequenceLeft xs
+    -- sequenceLeft (Left l1:Right r:xs) = Left [l1]:Right r:sequenceLeft xs
+    -- sequenceLeft (Left l1:[]) = Left [l1]:[]
+    -- sequenceLeft (x:xs) = x:sequenceLeft xs
+    -- sequenceLeft [] = []
+
+    sequenceLeft :: [Either l r] -> [Either [l] r]
+    sequenceLeft = foldr consLeft []
+
+    consLeft :: Either l r -> [Either [l] r] -> [Either [l] r]
+    consLeft (Left l) ((Left ls):xs) = (Left (l:ls)):xs
+    consLeft (Left l) xs = (Left [l]):xs
+    consLeft (Right r) xs = (Right r):xs
 
 findAll
     --- :: forall e s m a. (MonadParsec e s m)
@@ -232,7 +248,7 @@ streamEdit
         -- and returns a new stream section for the replacement.
     -> Tokens s
     -> Tokens s
-streamEdit sep editor input = undefined
+streamEdit = undefined-- runIdentity . streamEditT
 --     foldMap (either id (uncurry $ flip editor))
 --         $ fromMaybe input $ parseMaybe (findAll sep) input
 
