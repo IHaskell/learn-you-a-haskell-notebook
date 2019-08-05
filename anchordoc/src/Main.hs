@@ -248,15 +248,25 @@ streamEdit
         -- and returns a new stream section for the replacement.
     -> Tokens s
     -> Tokens s
-streamEdit = undefined-- runIdentity . streamEditT
+streamEdit = undefined -- runIdentity . streamEditT
 --     foldMap (either id (uncurry $ flip editor))
 --         $ fromMaybe input $ parseMaybe (findAll sep) input
 
 --        print $ foldMap (either id (\(_,(m,e)) -> show $ m * (10 ^^ e)))
 --              $ fromJust $ parseMaybe (findall scinum) input
 
--- | Same as `streamEdit`, but the `editor` function is in a monadic context.
--- This allows the `editor` function to perform, for example, IO.
+-- | Stream editor. Also can be considered "find-and-replace". Finds all
+-- of the sections of the stream which match the pattern `sep`, and replaces
+-- them with the result of the `editor` function.
+--
+-- This only works for `Stream s` such that `Tokens s ~ s`, because we want
+-- to output the same kind of stream that was input. It true
+-- that `Tokens s ~ s` for all the Stream instances included with
+-- Megaparsec: Lazy Text, Strict Text, Lazy Byestring, Strict Bytestring,
+-- and String.
+--
+-- We also need the `Monoid s` instance so that we can construct the output
+-- stream.
 streamEditT
     :: forall e s m a. (Ord e, Stream s, Monad m, Monoid s, Tokens s ~ s)
     => ParsecT e s m a
@@ -269,7 +279,7 @@ streamEditT
     -> m s
 streamEditT sep editor input = do
     runParserT (findAll sep) "" input >>= \case
-        (Left _) -> return input
+        (Left _) -> return input -- fail "" -- errorBundlePretty e -- parser should never fail, but if it does, fail in the Monad.
         (Right r) -> fmap fold $ traverse (either return (uncurry $ flip editor)) r
 
 --- instance SemiGroup (Tokens String) where
