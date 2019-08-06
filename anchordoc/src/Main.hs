@@ -200,8 +200,13 @@ findall pattern = do
 --
 
 -- | Separate and Capture
--- Separate a stream into sections which match a pattern,
--- and non-matching sections.
+--
+-- Separate a stream into sections which match a pattern in 'Right',
+-- and non-matching sections in 'Left'.
+--
+-- This parser will always consume its entire input and can never fail.
+-- If there are no matching patterns, then the entire input stream is returned
+-- as a non-matching section.
 sepCap
     :: forall e s m a. (MonadParsec e s m)
     -- :: (MonadParsec e s m, Tokens s ~ s)
@@ -259,10 +264,14 @@ streamEdit = undefined -- runIdentity . streamEditT
 -- of the sections of the stream which match the pattern `sep`, and replaces
 -- them with the result of the `editor` function.
 --
+-- This function is not a "parser combinator," it is more like
+-- an alternate "way to run a parser", like 'Text.Megaparsec.parse'
+-- or 'Text.Megaparsec.runParserT'.
+--
 -- This only works for `Stream s` such that `Tokens s ~ s`, because we want
--- to output the same kind of stream that was input. It true
--- that `Tokens s ~ s` for all the Stream instances included with
--- Megaparsec: Lazy Text, Strict Text, Lazy Byestring, Strict Bytestring,
+-- to output the same type of stream that was input. It is true
+-- that `Tokens s ~ s` for all the 'Text.Megaparsec.Stream' instances included
+-- with Megaparsec: Lazy Text, Strict Text, Lazy Bytestring, Strict Bytestring,
 -- and String.
 --
 -- We also need the `Monoid s` instance so that we can construct the output
@@ -289,3 +298,21 @@ streamEditT sep editor input = do
 -- -- let sed :: Parser a -> Parser [Either String a]
 --     sed p = do
 --         many $ fmap Right (try $ match p) <|> fmap (Left . return) anySingle
+
+
+
+
+-- HAQ (Hypothetically Asked Questions)
+--
+-- Q: Is it fast?
+--
+-- A: Meh. (benchmark comparison to sed).
+
+
+-- attoparsec has match
+-- http://hackage.haskell.org/package/attoparsec-0.13.2.2/docs/Data-Attoparsec-ByteString.html#v:match
+--
+-- attoparsec has a Monoid instance for Chunk
+-- http://hackage.haskell.org/package/attoparsec-0.13.2.2/docs/Data-Attoparsec-Types.html#t:Chunk
+--
+-- but attoparsec does not work for String. so.
