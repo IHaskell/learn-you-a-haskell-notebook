@@ -279,13 +279,20 @@ streamEdit sep editor = runIdentity . streamEditT sep (Identity . editor)
 -- If you want access to the matched string in the editing function,
 -- then combine the pattern parser with 'Text.Megaparsec.match', like
 --
--- > streamEdit t (match sep) (\(matchString, a) -> return "")
+-- > streamEdit (match sep) (\(matchString, a) -> return "")
 --
 -- If you want to do 'IO' operations in the `editor` function, then run this in
 -- 'IO'.
 --
 -- If you want the `editor` function to remember some state, then run this in
 -- a stateful 'Monad'.
+--
+-- Replace all carriage-return-newline instances with just newline.
+--
+-- > streamEdit crlf (const "\n")
+--
+-- Replace all numbers in scientific notation with decimal notation, but
+-- only if the value of the number is smaller than 20.
 streamEditT
     :: forall e s m a. (Ord e, Stream s, Monad m, Monoid s, Tokens s ~ s)
     => ParsecT e s m a
