@@ -195,14 +195,16 @@ findall pattern = do
                         -- Found a match, add to results and loop.
                         fmap ((Right mach):) loop
 
-
+-- StreamEdit.Megaparsec
+--
+--
 -- two new functions:
 --
 
 -- | Separate and Capture
 --
--- Separate a stream into sections which match a pattern in 'Right',
--- and non-matching sections in 'Left'.
+-- Parser combinator to separate a stream into sections which match a pattern
+-- in 'Right', and non-matching sections in 'Left'.
 --
 -- This parser will always consume its entire input and can never fail.
 -- If there are no matching patterns, then the entire input stream is returned
@@ -240,20 +242,17 @@ findAll
     --- -> m [Either s (s, a)]
 findAll sep = sepCap (match sep)
 
--- | Stream editor. Also can be considered "find-and-replace". Finds all
--- of the sections of the stream which match the pattern `sep`, and replaces
--- them with the result of the `editor` function.
+-- | Stream editor. Pure version of 'streamEditT'.
 streamEdit
-    :: (MonadParsec e s m)
-    => m a
+    :: forall e s a. (Ord e, Stream s, Monoid s, Tokens s ~ s)
+    => Parsec e s a
         -- ^ The parser `sep` for the pattern of interest.
-    -> (a -> Tokens s -> Tokens s)
-        -- ^ The `editor` function. Takes a parsed result of `sep`, and
-        -- the section of the stream which was matched by the pattern `sep`,
+    -> (a -> s)
+        -- ^ The `editor` function. Takes a parsed result of `sep`
         -- and returns a new stream section for the replacement.
-    -> Tokens s
-    -> Tokens s
-streamEdit = undefined -- runIdentity . streamEditT
+    -> s
+    -> s
+streamEdit sep editor = runIdentity . streamEditT sep (Identity . editor)
 --     foldMap (either id (uncurry $ flip editor))
 --         $ fromMaybe input $ parseMaybe (findAll sep) input
 
@@ -276,20 +275,30 @@ streamEdit = undefined -- runIdentity . streamEditT
 --
 -- We also need the `Monoid s` instance so that we can construct the output
 -- stream.
+--
+-- If you want access to the matched string in the editing function,
+-- then combine the pattern parser with 'Text.Megaparsec.match', like
+--
+-- > streamEdit t (match sep) (\(matchString, a) -> return "")
+--
+-- If you want to do 'IO' operations in the `editor` function, then run this in
+-- 'IO'.
+--
+-- If you want the `editor` function to remember some state, then run this in
+-- a stateful 'Monad'.
 streamEditT
     :: forall e s m a. (Ord e, Stream s, Monad m, Monoid s, Tokens s ~ s)
     => ParsecT e s m a
         -- ^ The parser `sep` for the pattern of interest.
-    -> (a -> s -> m s)
-        -- ^ The `editor` function. Takes a parsed result of `sep`, and
-        -- the section of the stream which was matched by the pattern `sep`,
+    -> (a -> m s)
+        -- ^ The `editor` function. Takes a parsed result of `sep`
         -- and returns a new stream section for the replacement.
     -> s
     -> m s
 streamEditT sep editor input = do
-    runParserT (findAll sep) "" input >>= \case
+    runParserT (sepCap sep) "" input >>= \case
         (Left _) -> return input -- fail "" -- errorBundlePretty e -- parser should never fail, but if it does, fail in the Monad.
-        (Right r) -> fmap fold $ traverse (either return (uncurry $ flip editor)) r
+        (Right r) -> fmap fold $ traverse (either return editor) r
 
 --- instance SemiGroup (Tokens String) where
 
