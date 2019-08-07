@@ -3,16 +3,17 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ViewPatterns #-}
 
 module Main where
 
 -- https://stackoverflow.com/questions/18957873/haskell-parenthesis-matching-for-find-and-replace
 -- import Text.ParserCombinators.Parsec
 
-import Network.Wreq (get, responseBody)
-import Control.Lens ((^..))
+import Network.Wreq (getWith, responseBody, param, defaults)
+import Control.Lens ((^..), (&), (.~))
 import Data.Aeson.Lens
-import Data.Text (unpack)
+import Data.Text (unpack, pack)
 
 import Text.Megaparsec
 import Text.Megaparsec.Char
@@ -32,6 +33,8 @@ import Data.Typeable
 
 -- stack exec anchordoc < ../notebook/02-starting-out.ipynb | tee ../notebook/02-starting-out.hoogle.ipynb
 
+type Parser = Parsec Void String
+
 main :: IO ()
 main = do
     getContents >>= streamEditT pattern hoogleReplace >>= putStr
@@ -40,16 +43,37 @@ main = do
     hoogleReplace (orig, Left _) = return orig -- masked by doubleBacktickMask
     hoogleReplace (orig, Right (_, "=", _)) = return orig -- not acually a symbol
     hoogleReplace (orig, Right (tickOpen, symbol, tickClose)) = do
-        -- TODO url-escape the query
-        hoogleResult <- get
-                        $  "https://hoogle.haskell.org?mode=json&hoogle="
-                        ++ symbol
-                        ++ "&scope=package%3Abase&start=1&count=1"
+
+        --cases that don't work:
+        -- `||` should be link, isn't
+        -- `'`  shouldn't be link, is
+
+        hoogleResult <- flip getWith
+                            "https://hoogle.haskell.org"
+                            $ defaults
+                            & param "mode"   .~ ["json"]
+                            & param "hoogle" .~ [pack symbol] -- will be url encoded
+                            & param "scope"  .~ ["package:base"]
+                            & param "start"  .~ ["1"]
+                            & param "count"  .~ ["1"]
+        -- hoogleResult <- get
+        --                 $  "https://hoogle.haskell.org?mode=json&hoogle="
+        --                 ++ symbol
+        --                 ++ "&scope=package%3Abase&start=1&count=1"
+
         -- We need to check if hoogle result is an exact result, which is a bit tricky
         -- https://github.com/ndmitchell/hoogle/blob/master/docs/API.md#json-api
+
+
+        let hoogleReturnSymbol = fmap unpack $ listToMaybe $ hoogleResult ^.. responseBody . nth 0 . key "item" . _String
+
+        case
+            ( maybe False (==symbol) $ parseMaybe (hoogleReturn :: Parser String) =<< hoogleReturnSymbol
+
         -- If hoogle returns a documentation URL
-        case (listToMaybe $ hoogleResult ^.. responseBody . nth 0 . key "url" . _String) of
-            Just docUrl ->
+            , listToMaybe $ hoogleResult ^.. responseBody . nth 0 . key "url" . _String
+            ) of
+            (True, Just docUrl) ->
                 -- Construct a Markdown link with the documentation URL
                 return
                     $  "["
@@ -59,22 +83,26 @@ main = do
                     ++ "]("
                     ++ unpack docUrl
                     ++ ")"
-            Nothing -> return orig
+            _ -> return orig
 
--- exclude special Markdown backtick escape like ``92 `div` 10``.
-doubleBacktickMask = do
-    chunk "``"
-    manyTill anySingle $ chunk "``"
-    return () -- we have to succeed and return something or 'sepCap' will backtrack
+    -- hoogleReturn :: (forall e s m . MonadParsec e s m) => m s
+    hoogleReturn = do
+        manyTill anySingle $ chunk "<s0>"
+        fmap (tokensToChunk (Proxy::Proxy String)) $ someTill anySingle $ chunk "</s0>"
+    -- exclude special Markdown backtick escape like ``92 `div` 10``.
+    doubleBacktickMask = do
+        chunk "``"
+        manyTill anySingle $ chunk "``"
+        return () -- we have to succeed and return something or 'sepCap' will backtrack
 
 
--- Parse something that looks like a symbol from Prelude in backticks.
--- backtickSymbol :: Parser (String, String, String)
-backtickSymbol = do
-    tickOpen  <- chunk "`"
-    symbol     <- Text.Megaparsec.some $ Text.Megaparsec.oneOf (['a'..'z'] ++ ['A'..'Z'] ++ ".<>+=-$/:'" :: String)
-    tickClose <- chunk "`"
-    return (tickOpen, symbol, tickClose)
+    -- Parse something that looks like a symbol from Prelude in backticks.
+    -- backtickSymbol :: Parser (String, String, String)
+    backtickSymbol = do
+        tickOpen  <- chunk "`"
+        symbol     <- Text.Megaparsec.some $ Text.Megaparsec.oneOf (['a'..'z'] ++ ['A'..'Z'] ++ ".<>+=-$/:'" :: String)
+        tickClose <- chunk "`"
+        return (tickOpen, symbol, tickClose)
 
 
     -- input <- getContents
@@ -119,7 +147,6 @@ backtickSymbol = do
 ---         -- Construct a Markdown link with the documentation URL
 ---         MaybeT $ return $ Just $ "[" ++ tickOpen ++ symbol ++ tickClose ++ "](" ++ unpack docUrl ++ ")"
 ---
---- type Parser = Parsec Void String
 
 
 -- Find and parse all of the non-overlapping substrings of a string which match
