@@ -2,6 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module Main where
 
@@ -9,7 +10,7 @@ module Main where
 -- import Text.ParserCombinators.Parsec
 
 import Network.Wreq (get, responseBody)
-import Control.Lens
+import Control.Lens ((^..))
 import Data.Aeson.Lens
 import Data.Text (unpack)
 
@@ -22,60 +23,98 @@ import Control.Monad
 import Data.Either
 import Data.Maybe
 import Data.Bifunctor
+import Data.Functor.Identity
 import Data.Proxy
 import Data.Foldable
 import Data.Traversable
+import Control.Exception (throw)
+import Data.Typeable
+
+-- stack exec anchordoc < ../notebook/02-starting-out.ipynb | tee ../notebook/02-starting-out.hoogle.ipynb
 
 main :: IO ()
 main = do
-    input <- getContents
-    let inputtest = "`==` `Eq` ` __`Ord`__ `T.D` `T dd` "
+    getContents >>= streamEditT (match backtickSymbol) hoogleReplace >>= putStr
+
+  where
+    hoogleReplace :: (String, (String, String, String, String, String)) -> IO String
+    hoogleReplace (orig, (prefix, tickOpen, symbol, tickClose, suffix)) = do
+        hoogleResult <- get
+                        $  "https://hoogle.haskell.org?mode=json&hoogle="
+                        ++ symbol
+                        ++ "&scope=package%3Abase&start=1&count=1"
+        -- If hoogle returns a documentation URL
+        case (listToMaybe $ hoogleResult ^.. responseBody . nth 0 . key "url" . _String) of
+            Just docUrl ->
+                -- Construct a Markdown link with the documentation URL
+                return
+                    $  prefix
+                    ++ "["
+                    ++ tickOpen
+                    ++ symbol
+                    ++ tickClose
+                    ++ "]("
+                    ++ unpack docUrl
+                    ++ ")"
+                    ++ suffix
+            Nothing -> return orig
+
+
+-- Parse something that looks like a symbol from Prelude in backticks.
+-- backtickSymbol :: Parser (String, String, String)
+backtickSymbol = do
+    -- exclude special Markdown backtick escape like ``92 `div` 10``.
+    prefix <- fmap (:[]) $ anySingleBut '`'
+    tickOpen  <- chunk "`"
+    symbol     <- Text.Megaparsec.some $ Text.Megaparsec.oneOf (['a'..'z'] ++ ['A'..'Z'] ++ ".<>+=-$/:'" :: String)
+    tickClose <- chunk "`"
+    suffix <- fmap (:[]) $ anySingleBut '`'
+    return (prefix, tickOpen, symbol, tickClose, suffix)
+
+
+    -- input <- getContents
+
+    -- let inputtest = "`==` `Eq` ` __`Ord`__ `T.D` `T dd` "
+
+    -- print $ streamEdit backtickSymbol (\ (_, x, _) -> "(" ++ x ++ ")") inputtest
+
     -- let inputtest = "  `==` `Eq` ` ` __`Ord`__ `T.D` `T dd` "
     --- case (parse (finall backtickSymbol >> many anySingle) "" inputtest) of
     ---     Left err -> print err
     ---     Right r -> print r
     --- mzero
 
-    case (parse (findall backtickSymbol) "" input) of
-        Left err -> print err
-        Right groups -> do
-            -- print groups
-            -- putStr =<< fmap join (mapM replace groups)
-            putStr =<< fmap unlines (mapM replace groups)
+    --- case (parse (findAll backtickSymbol) "" inputtest) of
+    ---     Left err -> print err
+    ---     Right groups -> do
+    ---         print groups
+    ---         -- putStr =<< fmap join (mapM replace groups)
+    ---         -- putStr =<< fmap unlines (mapM replace groups)
 
-replace :: Either String (String, (String, String, String)) -> IO String
-replace (Left cap) = return "" -- cap
-replace (Right (cap, (tickOpen, symbol, tickClose))) =
-    --- runMaybeT $ fromMaybe cap $ do
-    -- If anything doesn't work out then just use the original capture `cap`.
-    -- TODO don't use runMaybeT
-    fmap (fromMaybe cap) $ runMaybeT $ do
-        -- Bail out if this doesn't look like a legitimate Haskell token
-        -- guard $ all (`elem` (['a'..'z'] ++ ['A'..'Z'] ++ ".<>+=-$/:'")) token
-        -- MaybeT $ return $ guard $ flip all token $ flip elem $ ['a'..'z'] ++ ['A'..'Z'] ++ ".<>+=-$/:'"
-
-        lift $ putStrLn $ "query " ++ symbol
-        -- Query hoogle for the symbol, only in the base package, only 1 result.
-        hoogleResult <- lift $ get $  "https://hoogle.haskell.org?mode=json&hoogle="
-                            ++ symbol
-                            ++ "&scope=package%3Abase&start=1&count=1"
-
-        -- If hoogle returns a documentation URL
-        docUrl <- MaybeT $ return $ listToMaybe $ hoogleResult ^.. responseBody . nth 0 . key "url" . _String
-
-        -- Construct a Markdown link with the documentation URL
-        MaybeT $ return $ Just $ "[" ++ tickOpen ++ symbol ++ tickClose ++ "](" ++ unpack docUrl ++ ")"
-
-type Parser = Parsec Void String
-
-
--- Parse something that looks like a symbol from Prelude in backticks.
-backtickSymbol :: Parser (String, String, String)
-backtickSymbol = do
-    tickOpen  <- chunk "`"
-    symbol     <- Text.Megaparsec.some $ Text.Megaparsec.oneOf (['a'..'z'] ++ ['A'..'Z'] ++ ".<>+=-$/:'" :: String)
-    tickClose <- chunk "`"
-    return (tickOpen, symbol, tickClose)
+--- replace :: Either String (String, (String, String, String, String, String)) -> IO String
+--- replace (Left cap) = return "" -- cap
+--- replace (Right (cap, (prefix, tickOpen, symbol, tickClose, suffix))) =
+---     --- runMaybeT $ fromMaybe cap $ do
+---     -- If anything doesn't work out then just use the original capture `cap`.
+---     -- TODO don't use runMaybeT
+---     fmap (fromMaybe cap) $ runMaybeT $ do
+---         -- Bail out if this doesn't look like a legitimate Haskell token
+---         -- guard $ all (`elem` (['a'..'z'] ++ ['A'..'Z'] ++ ".<>+=-$/:'")) token
+---         -- MaybeT $ return $ guard $ flip all token $ flip elem $ ['a'..'z'] ++ ['A'..'Z'] ++ ".<>+=-$/:'"
+---
+---         lift $ putStrLn $ "query " ++ symbol
+---         -- Query hoogle for the symbol, only in the base package, only 1 result.
+---         hoogleResult <- lift $ get $  "https://hoogle.haskell.org?mode=json&hoogle="
+---                             ++ symbol
+---                             ++ "&scope=package%3Abase&start=1&count=1"
+---
+---         -- If hoogle returns a documentation URL
+---         docUrl <- MaybeT $ return $ listToMaybe $ hoogleResult ^.. responseBody . nth 0 . key "url" . _String
+---
+---         -- Construct a Markdown link with the documentation URL
+---         MaybeT $ return $ Just $ "[" ++ tickOpen ++ symbol ++ tickClose ++ "](" ++ unpack docUrl ++ ")"
+---
+--- type Parser = Parsec Void String
 
 
 -- Find and parse all of the non-overlapping substrings of a string which match
@@ -244,8 +283,8 @@ findAll sep = sepCap (match sep)
 
 -- | Stream editor. Pure version of 'streamEditT'.
 streamEdit
-    :: forall e s a. (Ord e, Stream s, Monoid s, Tokens s ~ s)
-    => Parsec e s a
+    :: forall s a. (Stream s, Monoid s, Tokens s ~ s, Show s, Show (Token s), Typeable s)
+    => Parsec Void s a
         -- ^ The parser `sep` for the pattern of interest.
     -> (a -> s)
         -- ^ The `editor` function. Takes a parsed result of `sep`
@@ -270,7 +309,11 @@ streamEdit sep editor = runIdentity . streamEditT sep (Identity . editor)
 -- This only works for `Stream s` such that `Tokens s ~ s`, because we want
 -- to output the same type of stream that was input. It is true
 -- that `Tokens s ~ s` for all the 'Text.Megaparsec.Stream' instances included
--- with Megaparsec: Lazy Text, Strict Text, Lazy Bytestring, Strict Bytestring,
+-- with Megaparsec:
+-- Strict 'Data.Text',
+-- Lazy 'Data.Text.Lazy',
+-- Strict 'Data.Bytestring',
+-- Lazy 'Data.Bytestring.Lazy',
 -- and String.
 --
 -- We also need the `Monoid s` instance so that we can construct the output
@@ -294,8 +337,8 @@ streamEdit sep editor = runIdentity . streamEditT sep (Identity . editor)
 -- Replace all numbers in scientific notation with decimal notation, but
 -- only if the value of the number is smaller than 20.
 streamEditT
-    :: forall e s m a. (Ord e, Stream s, Monad m, Monoid s, Tokens s ~ s)
-    => ParsecT e s m a
+    :: forall s m a. (Stream s, Monad m, Monoid s, Tokens s ~ s, Show s, Show (Token s), Typeable s)
+    => ParsecT Void s m a
         -- ^ The parser `sep` for the pattern of interest.
     -> (a -> m s)
         -- ^ The `editor` function. Takes a parsed result of `sep`
@@ -304,7 +347,7 @@ streamEditT
     -> m s
 streamEditT sep editor input = do
     runParserT (sepCap sep) "" input >>= \case
-        (Left _) -> return input -- fail "" -- errorBundlePretty e -- parser should never fail, but if it does, fail in the Monad.
+        (Left err) -> throw err -- return input -- fail "" -- errorBundlePretty e -- parser should never fail, but if it does, fail in the Monad.
         (Right r) -> fmap fold $ traverse (either return editor) r
 
 --- instance SemiGroup (Tokens String) where
