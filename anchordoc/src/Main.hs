@@ -34,42 +34,47 @@ import Data.Typeable
 
 main :: IO ()
 main = do
-    getContents >>= streamEditT (match backtickSymbol) hoogleReplace >>= putStr
-
+    getContents >>= streamEditT pattern hoogleReplace >>= putStr
   where
-    hoogleReplace :: (String, (String, String, String, String, String)) -> IO String
-    hoogleReplace (orig, (prefix, tickOpen, symbol, tickClose, suffix)) = do
+    pattern = match $ eitherP doubleBacktickMask backtickSymbol
+    hoogleReplace (orig, Left _) = return orig -- masked by doubleBacktickMask
+    hoogleReplace (orig, Right (_, "=", _)) = return orig -- not acually a symbol
+    hoogleReplace (orig, Right (tickOpen, symbol, tickClose)) = do
+        -- TODO url-escape the query
         hoogleResult <- get
                         $  "https://hoogle.haskell.org?mode=json&hoogle="
                         ++ symbol
                         ++ "&scope=package%3Abase&start=1&count=1"
+        -- We need to check if hoogle result is an exact result, which is a bit tricky
+        -- https://github.com/ndmitchell/hoogle/blob/master/docs/API.md#json-api
         -- If hoogle returns a documentation URL
         case (listToMaybe $ hoogleResult ^.. responseBody . nth 0 . key "url" . _String) of
             Just docUrl ->
                 -- Construct a Markdown link with the documentation URL
                 return
-                    $  prefix
-                    ++ "["
+                    $  "["
                     ++ tickOpen
                     ++ symbol
                     ++ tickClose
                     ++ "]("
                     ++ unpack docUrl
                     ++ ")"
-                    ++ suffix
             Nothing -> return orig
+
+-- exclude special Markdown backtick escape like ``92 `div` 10``.
+doubleBacktickMask = do
+    chunk "``"
+    manyTill anySingle $ chunk "``"
+    return () -- we have to succeed and return something or 'sepCap' will backtrack
 
 
 -- Parse something that looks like a symbol from Prelude in backticks.
 -- backtickSymbol :: Parser (String, String, String)
 backtickSymbol = do
-    -- exclude special Markdown backtick escape like ``92 `div` 10``.
-    prefix <- fmap (:[]) $ anySingleBut '`'
     tickOpen  <- chunk "`"
     symbol     <- Text.Megaparsec.some $ Text.Megaparsec.oneOf (['a'..'z'] ++ ['A'..'Z'] ++ ".<>+=-$/:'" :: String)
     tickClose <- chunk "`"
-    suffix <- fmap (:[]) $ anySingleBut '`'
-    return (prefix, tickOpen, symbol, tickClose, suffix)
+    return (tickOpen, symbol, tickClose)
 
 
     -- input <- getContents
