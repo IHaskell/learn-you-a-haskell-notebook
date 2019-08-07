@@ -46,7 +46,7 @@ main = do
 
         --cases that don't work:
         -- `||` should be link, isn't
-        -- `'`  shouldn't be link, is
+        -- `'` `baby.hs`, `x`, `y`, shouldn't be link, is
 
         hoogleResult <- flip getWith
                             "https://hoogle.haskell.org"
@@ -69,6 +69,7 @@ main = do
 
         case
             ( maybe False (==symbol) $ parseMaybe (hoogleReturn :: Parser String) =<< hoogleReturnSymbol
+            -- ( True
 
         -- If hoogle returns a documentation URL
             , listToMaybe $ hoogleResult ^.. responseBody . nth 0 . key "url" . _String
@@ -85,7 +86,7 @@ main = do
                     ++ ")"
             _ -> return orig
 
-    -- hoogleReturn :: (forall e s m . MonadParsec e s m) => m s
+    hoogleReturn :: Parser String
     hoogleReturn = do
         manyTill anySingle $ chunk "<s0>"
         fmap (tokensToChunk (Proxy::Proxy String)) $ someTill anySingle $ chunk "</s0>"
