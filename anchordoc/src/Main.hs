@@ -47,6 +47,8 @@ main = do
         --cases that don't work:
         -- `||` should be link, isn't
         -- `'` `baby.hs`, `x`, `y`, shouldn't be link, is
+        -- infix backtick functions like `elem` in code blocks. we're going to
+        -- need to only search in "cell-type":"markdown".
 
         hoogleResult <- flip getWith
                             "https://hoogle.haskell.org"
@@ -65,13 +67,12 @@ main = do
         -- https://github.com/ndmitchell/hoogle/blob/master/docs/API.md#json-api
 
 
-        let hoogleReturnSymbol = fmap unpack $ listToMaybe $ hoogleResult ^.. responseBody . nth 0 . key "item" . _String
+        let hoogleReturnItem = fmap unpack $ listToMaybe $ hoogleResult ^.. responseBody . nth 0 . key "item" . _String
 
+        -- If hoogle returns a documentation URL, and the same symbol
+        -- that was queried, then substitute a markdown link
         case
-            ( maybe False (==symbol) $ parseMaybe (hoogleReturn :: Parser String) =<< hoogleReturnSymbol
-            -- ( True
-
-        -- If hoogle returns a documentation URL
+            ( maybe False (==symbol) $ parseMaybe (hoogleReturnItemSymbol :: Parser String) =<< hoogleReturnItem
             , listToMaybe $ hoogleResult ^.. responseBody . nth 0 . key "url" . _String
             ) of
             (True, Just docUrl) ->
@@ -86,10 +87,13 @@ main = do
                     ++ ")"
             _ -> return orig
 
-    hoogleReturn :: Parser String
-    hoogleReturn = do
+    hoogleReturnItemSymbol :: Parser String
+    hoogleReturnItemSymbol = do
         manyTill anySingle $ chunk "<s0>"
-        fmap (tokensToChunk (Proxy::Proxy String)) $ someTill anySingle $ chunk "</s0>"
+        s <- fmap (tokensToChunk (Proxy::Proxy String)) $ someTill anySingle $ chunk "</s0>"
+        takeRest -- must consume all input for parseMaybe success
+        return s
+
     -- exclude special Markdown backtick escape like ``92 `div` 10``.
     doubleBacktickMask = do
         chunk "``"
@@ -101,10 +105,32 @@ main = do
     -- backtickSymbol :: Parser (String, String, String)
     backtickSymbol = do
         tickOpen  <- chunk "`"
-        symbol     <- Text.Megaparsec.some $ Text.Megaparsec.oneOf (['a'..'z'] ++ ['A'..'Z'] ++ ".<>+=-$/:'" :: String)
+        symbol     <- Text.Megaparsec.some $ Text.Megaparsec.oneOf (['a'..'z'] ++ ['A'..'Z'] ++ "|&?%^*#~.<>+=-$/:'" :: String)
         tickClose <- chunk "`"
         return (tickOpen, symbol, tickClose)
 
+
+-- We need to parse only markdown cells
+--  {
+--    "cell_type": "markdown",
+--    "metadata": {},
+--    "source": [
+--     "__`repeat`__ takes an element and produces an infinite list of just that\n",
+--     "element. It's like cycling a list with only one element."
+--    ]
+--  },
+    markdownCell :: Parser ()
+    markdownCell = do
+        chunk "{"
+        space
+        chunk "\"cell_type\": \"markdown\","
+        space
+        chunk "\"metadata\": {},"
+        space
+        chunk "\"source\": ["
+        space
+        chunk "]" >> newline
+        return ()
 
     -- input <- getContents
 
@@ -299,11 +325,11 @@ sepCap sep = (fmap.fmap) (first $ tokensToChunk (Proxy::Proxy s))
 
     sequenceLeft :: [Either l r] -> [Either [l] r]
     sequenceLeft = foldr consLeft []
-
-    consLeft :: Either l r -> [Either [l] r] -> [Either [l] r]
-    consLeft (Left l) ((Left ls):xs) = (Left (l:ls)):xs
-    consLeft (Left l) xs = (Left [l]):xs
-    consLeft (Right r) xs = (Right r):xs
+      where
+        consLeft :: Either l r -> [Either [l] r] -> [Either [l] r]
+        consLeft (Left l) ((Left ls):xs) = (Left (l:ls)):xs
+        consLeft (Left l) xs = (Left [l]):xs
+        consLeft (Right r) xs = (Right r):xs
 
 findAll
     --- :: forall e s m a. (MonadParsec e s m)
