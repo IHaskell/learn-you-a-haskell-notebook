@@ -7,31 +7,22 @@
 
 module Main where
 
--- https://stackoverflow.com/questions/18957873/haskell-parenthesis-matching-for-find-and-replace
--- import Text.ParserCombinators.Parsec
 
 import Network.Wreq (getWith, responseBody, param, defaults)
 import Control.Lens ((^..), (&), (.~))
 import Data.Aeson.Lens
 import Data.Text (unpack, pack)
-
 import Text.Megaparsec
-import Text.Megaparsec.Char
-import Control.Monad.Trans.Maybe
-import Control.Monad.Trans.Class
+
 import Data.Void
-import Control.Monad
-import Data.Either
 import Data.Maybe
 import Data.Bifunctor
 import Data.Functor.Identity
 import Data.Proxy
 import Data.Foldable
-import Data.Traversable
 import Control.Exception (throw)
 import Data.Typeable
-
--- stack exec anchordoc < ../notebook/02-starting-out.ipynb | tee ../notebook/02-starting-out.hoogle.ipynb
+import Control.Monad
 
 type Parser = Parsec Void String
 
@@ -45,11 +36,10 @@ main = do
     hoogleReplace (orig, Right (tickOpen, symbol, tickClose)) = do
 
         --cases that don't work:
-        -- `||` should be link, isn't
-        -- `'` `baby.hs`, `x`, `y`, shouldn't be link, is
         -- infix backtick functions like `elem` in code blocks. we're going to
         -- need to only search in "cell-type":"markdown".
 
+        -- https://github.com/ndmitchell/hoogle/blob/master/docs/API.md#json-api
         hoogleResult <- flip getWith
                             "https://hoogle.haskell.org"
                             $ defaults
@@ -58,13 +48,6 @@ main = do
                             & param "scope"  .~ ["package:base"]
                             & param "start"  .~ ["1"]
                             & param "count"  .~ ["1"]
-        -- hoogleResult <- get
-        --                 $  "https://hoogle.haskell.org?mode=json&hoogle="
-        --                 ++ symbol
-        --                 ++ "&scope=package%3Abase&start=1&count=1"
-
-        -- We need to check if hoogle result is an exact result, which is a bit tricky
-        -- https://github.com/ndmitchell/hoogle/blob/master/docs/API.md#json-api
 
 
         let hoogleReturnItem = fmap unpack $ listToMaybe $ hoogleResult ^.. responseBody . nth 0 . key "item" . _String
@@ -89,16 +72,17 @@ main = do
 
     hoogleReturnItemSymbol :: Parser String
     hoogleReturnItemSymbol = do
-        manyTill anySingle $ chunk "<s0>"
-        s <- fmap (tokensToChunk (Proxy::Proxy String)) $ someTill anySingle $ chunk "</s0>"
-        takeRest -- must consume all input for parseMaybe success
+        void $ manyTill anySingle $ chunk "<s0>"
+        s <- fmap (tokensToChunk (Proxy::Proxy String))
+             $ someTill anySingle $ chunk "</s0>"
+        void $ takeRest -- must consume all input for parseMaybe success
         return s
 
     -- exclude special Markdown backtick escape like ``92 `div` 10``.
     doubleBacktickMask = do
-        chunk "``"
-        manyTill anySingle $ chunk "``"
-        return () -- we have to succeed and return something or 'sepCap' will backtrack
+        void $ chunk "``"
+        void $ manyTill anySingle $ chunk "``"
+        -- we have to succeed and return something or 'sepCap' will backtrack
 
 
     -- Parse something that looks like a symbol from Prelude in backticks.
@@ -119,61 +103,18 @@ main = do
 --     "element. It's like cycling a list with only one element."
 --    ]
 --  },
-    markdownCell :: Parser ()
-    markdownCell = do
-        chunk "{"
-        space
-        chunk "\"cell_type\": \"markdown\","
-        space
-        chunk "\"metadata\": {},"
-        space
-        chunk "\"source\": ["
-        space
-        chunk "]" >> newline
-        return ()
-
-    -- input <- getContents
-
-    -- let inputtest = "`==` `Eq` ` __`Ord`__ `T.D` `T dd` "
-
-    -- print $ streamEdit backtickSymbol (\ (_, x, _) -> "(" ++ x ++ ")") inputtest
-
-    -- let inputtest = "  `==` `Eq` ` ` __`Ord`__ `T.D` `T dd` "
-    --- case (parse (finall backtickSymbol >> many anySingle) "" inputtest) of
-    ---     Left err -> print err
-    ---     Right r -> print r
-    --- mzero
-
-    --- case (parse (findAll backtickSymbol) "" inputtest) of
-    ---     Left err -> print err
-    ---     Right groups -> do
-    ---         print groups
-    ---         -- putStr =<< fmap join (mapM replace groups)
-    ---         -- putStr =<< fmap unlines (mapM replace groups)
-
---- replace :: Either String (String, (String, String, String, String, String)) -> IO String
---- replace (Left cap) = return "" -- cap
---- replace (Right (cap, (prefix, tickOpen, symbol, tickClose, suffix))) =
----     --- runMaybeT $ fromMaybe cap $ do
----     -- If anything doesn't work out then just use the original capture `cap`.
----     -- TODO don't use runMaybeT
----     fmap (fromMaybe cap) $ runMaybeT $ do
----         -- Bail out if this doesn't look like a legitimate Haskell token
----         -- guard $ all (`elem` (['a'..'z'] ++ ['A'..'Z'] ++ ".<>+=-$/:'")) token
----         -- MaybeT $ return $ guard $ flip all token $ flip elem $ ['a'..'z'] ++ ['A'..'Z'] ++ ".<>+=-$/:'"
----
----         lift $ putStrLn $ "query " ++ symbol
----         -- Query hoogle for the symbol, only in the base package, only 1 result.
----         hoogleResult <- lift $ get $  "https://hoogle.haskell.org?mode=json&hoogle="
----                             ++ symbol
----                             ++ "&scope=package%3Abase&start=1&count=1"
----
----         -- If hoogle returns a documentation URL
----         docUrl <- MaybeT $ return $ listToMaybe $ hoogleResult ^.. responseBody . nth 0 . key "url" . _String
----
----         -- Construct a Markdown link with the documentation URL
----         MaybeT $ return $ Just $ "[" ++ tickOpen ++ symbol ++ tickClose ++ "](" ++ unpack docUrl ++ ")"
----
+    -- markdownCell :: Parser ()
+    -- markdownCell = do
+    --     chunk "{"
+    --     space
+    --     chunk "\"cell_type\": \"markdown\","
+    --     space
+    --     chunk "\"metadata\": {},"
+    --     space
+    --     chunk "\"source\": ["
+    --     space
+    --     chunk "]" >> newline
+    --     return ()
 
 
 -- Find and parse all of the non-overlapping substrings of a string which match
@@ -258,40 +199,6 @@ main = do
 -- We need the Semigroup instance for `s` because a Megaparsec Stream has
 -- methods for unconsing the Stream, but no methods for consing the Stream,
 -- and findall needs to build an output stream, not just parse the input stream.
-findall :: forall e s m a. (MonadParsec e s m) => m a -> m [Either (Tokens s) (Tokens s, a)]
--- findall :: forall e s m a. MonadParsec e s m => m a -> m [Either (Tokens s) (Tokens s, a)]
--- findall :: forall a. ParsecT e s m a -> ParsecT e s m [Either String (String, a)]
-findall pattern = do
-    (fmap.fmap) (first $ tokensToChunk (Proxy::Proxy s)) loop
-   -- st0 <- getParserState
-   -- (st', caps) <- loop st0
-   -- (st', caps) <- runParserT'
-   --updateParserState (const st') -- Update state so Parser has consumed all input.
-   -- return caps
-  where
-    -- take a parser state and build up a list of capture results
-    -- loop :: State s -> m (State s, [(Either (Tokens s) (Tokens s, a))])
-    loop =
-        (observing eof) >>= \case
-            (Right _) -> return []
-            (Left _) ->
-                --- case (runParserT' (match pattern) st) of
-                (observing (try (match pattern))) >>= \case
-                    (Left _) ->
-                        -- No match, so add the first character to the Left non-matching
-                        -- results and then step forward and loop.
-                        -- TODO use `token` instead of `anySingle`
-                        anySingle >>= \ oneChar ->
-                                -- now collect the oneChar and loop with stIncrem
-                                loop >>= \case
-                                    ((Left cap):caps) ->
-                                        return (Left (oneChar:cap):caps)
-                                    caps ->
-                                        return (Left ([oneChar]):caps)
-                                --TODO generalized Token cons instead of tokenToChunk?
-                    (Right mach) ->
-                        -- Found a match, add to results and loop.
-                        fmap ((Right mach):) loop
 
 -- StreamEdit.Megaparsec
 --
@@ -302,27 +209,20 @@ findall pattern = do
 -- | Separate and Capture
 --
 -- Parser combinator to separate a stream into sections which match a pattern
--- in 'Right', and non-matching sections in 'Left'.
+-- in 'Right', and non-matching sections in 'Left'. Capture both the
+-- matching and non-matching sections.
 --
 -- This parser will always consume its entire input and can never fail.
 -- If there are no matching patterns, then the entire input stream is returned
 -- as a non-matching section.
 sepCap
     :: forall e s m a. (MonadParsec e s m)
-    -- :: (MonadParsec e s m, Tokens s ~ s)
     => m a
     -> m [Either (Tokens s) a]
-    --- -> m [Either s a]
 sepCap sep = (fmap.fmap) (first $ tokensToChunk (Proxy::Proxy s))
-             $ fmap sequenceLeft $ many $ fmap Right (try sep) <|> fmap Left anySingle
+             $ fmap sequenceLeft
+             $ many $ fmap Right (try sep) <|> fmap Left anySingle
   where
-    -- sequenceLeft :: [Either a b] -> [Either [a] b]
-    -- sequenceLeft (Left l1:Left l2:xs) = Left (l1:l2:ls):sequenceLeft xs
-    -- sequenceLeft (Left l1:Right r:xs) = Left [l1]:Right r:sequenceLeft xs
-    -- sequenceLeft (Left l1:[]) = Left [l1]:[]
-    -- sequenceLeft (x:xs) = x:sequenceLeft xs
-    -- sequenceLeft [] = []
-
     sequenceLeft :: [Either l r] -> [Either [l] r]
     sequenceLeft = foldr consLeft []
       where
@@ -332,12 +232,9 @@ sepCap sep = (fmap.fmap) (first $ tokensToChunk (Proxy::Proxy s))
         consLeft (Right r) xs = (Right r):xs
 
 findAll
-    --- :: forall e s m a. (MonadParsec e s m)
     :: MonadParsec e s m
-    -- :: (MonadParsec e s m, Tokens s ~ s)
     => m a
     -> m [Either (Tokens s) (Tokens s, a)]
-    --- -> m [Either s (s, a)]
 findAll sep = sepCap (match sep)
 
 -- | Stream editor. Pure version of 'streamEditT'.
@@ -351,11 +248,6 @@ streamEdit
     -> s
     -> s
 streamEdit sep editor = runIdentity . streamEditT sep (Identity . editor)
---     foldMap (either id (uncurry $ flip editor))
---         $ fromMaybe input $ parseMaybe (findAll sep) input
-
---        print $ foldMap (either id (\(_,(m,e)) -> show $ m * (10 ^^ e)))
---              $ fromJust $ parseMaybe (findall scinum) input
 
 -- | Stream editor. Also can be considered "find-and-replace". Finds all
 -- of the sections of the stream which match the pattern `sep`, and replaces
@@ -389,7 +281,7 @@ streamEdit sep editor = runIdentity . streamEditT sep (Identity . editor)
 -- If you want the `editor` function to remember some state, then run this in
 -- a stateful 'Monad'.
 --
--- Replace all carriage-return-newline instances with just newline.
+-- Replace all carriage-return-newline instances with newline.
 --
 -- > streamEdit crlf (const "\n")
 --
@@ -406,17 +298,8 @@ streamEditT
     -> m s
 streamEditT sep editor input = do
     runParserT (sepCap sep) "" input >>= \case
-        (Left err) -> throw err -- return input -- fail "" -- errorBundlePretty e -- parser should never fail, but if it does, fail in the Monad.
+        (Left err) -> throw err -- parser should never fail, but if it does, throw
         (Right r) -> fmap fold $ traverse (either return editor) r
-
---- instance SemiGroup (Tokens String) where
-
--- this is actually the best solution
--- let sed :: Parser a -> Parser [Either String (String, a)]
--- -- let sed :: Parser a -> Parser [Either String a]
---     sed p = do
---         many $ fmap Right (try $ match p) <|> fmap (Left . return) anySingle
-
 
 
 
@@ -434,3 +317,5 @@ streamEditT sep editor input = do
 -- http://hackage.haskell.org/package/attoparsec-0.13.2.2/docs/Data-Attoparsec-Types.html#t:Chunk
 --
 -- but attoparsec does not work for String. so.
+
+-- https://stackoverflow.com/questions/18957873/haskell-parenthesis-matching-for-find-and-replace
