@@ -26,3 +26,4 @@ executable anchordoc
                      , lens
                      , lens-aeson
                      , transformers
+                     , replace-megaparsec
