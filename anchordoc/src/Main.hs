@@ -27,8 +27,8 @@ main = do
   where
     pattern = match $ eitherP doubleBacktickMask backtickSymbol
     hoogleReplace (orig, Left _) = return orig -- masked by doubleBacktickMask
-    hoogleReplace (orig, Right (_, "=", _)) = return orig -- not acually a symbol
-    hoogleReplace (orig, Right (tickOpen, symbol, tickClose)) = do
+    hoogleReplace (orig, Right (_, _, "=", _, _)) = return orig -- not acually a symbol
+    hoogleReplace (orig, Right (tickPrefix, tickOpen, symbol, tickClose, tickSuffix)) = do
 
         -- https://github.com/ndmitchell/hoogle/blob/master/docs/API.md#json-api
         --
@@ -94,13 +94,15 @@ main = do
             (True, Just docUrl) ->
                 -- Construct a Markdown link with the documentation URL
                 return
-                    $  "["
+                    $  tickPrefix
+                    ++ "["
                     ++ tickOpen
                     ++ symbol
                     ++ tickClose
                     ++ "]("
                     ++ unpack docUrl
                     ++ ")"
+                    ++ tickSuffix
             _ -> return orig
 
     hoogleReturnItemSymbol :: Parser String
@@ -121,10 +123,12 @@ main = do
 
     -- Parse something that looks like a symbol from Prelude in backticks.
     backtickSymbol = do
-        tickOpen  <- chunk "`"
-        symbol    <- Mp.some $ Mp.oneOf $ ['a'..'z'] ++ ['A'..'Z'] ++ "|&?%^*#~.<>+=-$/:'"
-        tickClose <- chunk "`"
-        return (tickOpen, symbol, tickClose)
+        tickPrefix <- noneOf ("[" :: String)
+        tickOpen   <- chunk "`"
+        symbol     <- Mp.some $ Mp.oneOf $ ['a'..'z'] ++ ['A'..'Z'] ++ "|&?%^*#~.<>+=-$/:'"
+        tickClose  <- chunk "`"
+        tickSuffix <- noneOf ("]" :: String)
+        return ([tickPrefix], tickOpen, symbol, tickClose, [tickSuffix])
 
 -- TODO:
 --
