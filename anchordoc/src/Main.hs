@@ -11,17 +11,12 @@ import Network.Wreq (getWith, responseBody, param, defaults)
 import Control.Lens ((^..), (&), (.~))
 import Data.Aeson.Lens
 import Data.Text (unpack, pack)
-import Text.Megaparsec
+import Text.Megaparsec as Mp
 import Replace.Megaparsec
 
 import Data.Void
 import Data.Maybe
-import Data.Bifunctor
-import Data.Functor.Identity
 import Data.Proxy
-import Data.Foldable
-import Control.Exception (throw)
-import Data.Typeable
 import Control.Monad
 
 type Parser = Parsec Void String
@@ -35,11 +30,14 @@ main = do
     hoogleReplace (orig, Right (_, "=", _)) = return orig -- not acually a symbol
     hoogleReplace (orig, Right (tickOpen, symbol, tickClose)) = do
 
-        -- cases that don't work:
-        -- infix backtick functions like `elem` in code blocks. we're going to
-        -- need to only search in "cell-type":"markdown".
-
         -- https://github.com/ndmitchell/hoogle/blob/master/docs/API.md#json-api
+        --
+        -- Query looks like this:
+        -- https://hoogle.haskell.org/?mode=json&hoogle=head&scope=package:base&start=1&count=1
+        --
+        -- Query looks like this:
+        -- https://hoogle.haskell.org/?mode=json&hoogle=%3E%3E%3D&scope=package:base&start=1&count=1
+
         hoogleResult <- flip getWith
                             "https://hoogle.haskell.org"
                             $ defaults
@@ -48,6 +46,42 @@ main = do
                             & param "scope"  .~ ["package:base"]
                             & param "start"  .~ ["1"]
                             & param "count"  .~ ["1"]
+
+        -- Result looks like this:
+        -- [
+        --   {
+        --     "url": "https://hackage.haskell.org/package/base/docs/Prelude.html#v:head",
+        --     "module": {
+        --       "url": "https://hackage.haskell.org/package/base/docs/Prelude.html",
+        --       "name": "Prelude"
+        --     },
+        --     "package": {
+        --       "url": "https://hackage.haskell.org/package/base",
+        --       "name": "base"
+        --     },
+        --     "item": "<span class=name><s0>head</s0></span> :: [a] -&gt; a",
+        --     "type": "",
+        --     "docs": "Extract the first element of a list, which must be non-empty.\n"
+        --   }
+        -- ]
+        --
+        -- Result looks like this:
+        -- [
+        --   {
+        --     "url": "https://hackage.haskell.org/package/base/docs/Prelude.html#v:-62--62--61-",
+        --     "module": {
+        --       "url": "https://hackage.haskell.org/package/base/docs/Prelude.html",
+        --       "name": "Prelude"
+        --     },
+        --     "package": {
+        --       "url": "https://hackage.haskell.org/package/base",
+        --       "name": "base"
+        --     },
+        --     "item": "<span class=name>(<s0>&gt;&gt;=</s0>)</span> :: forall a b . Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b",
+        --     "type": "",
+        --     "docs": "Sequentially compose two actions, passing any value produced by the\nfirst as an argument to the second.\n"
+        --   }
+        -- ]
 
         let hoogleReturnItem = fmap unpack $ listToMaybe $ hoogleResult ^.. responseBody . nth 0 . key "item" . _String
 
@@ -75,7 +109,9 @@ main = do
         s <- fmap (tokensToChunk (Proxy::Proxy String))
              $ someTill anySingle $ chunk "</s0>"
         void $ takeRest -- must consume all input for parseMaybe success
-        return s
+        return $ streamEdit (chunk "&lt;") (const "<")
+               $ streamEdit (chunk "&gt;") (const ">")
+               $ streamEdit (chunk "&amp;") (const "&") s
 
     -- exclude special Markdown backtick escape like ``92 `div` 10``.
     doubleBacktickMask = do
@@ -84,14 +120,19 @@ main = do
         -- we have to succeed and return something or 'sepCap' will backtrack
 
     -- Parse something that looks like a symbol from Prelude in backticks.
-    -- backtickSymbol :: Parser (String, String, String)
     backtickSymbol = do
         tickOpen  <- chunk "`"
-        symbol     <- Text.Megaparsec.some $ Text.Megaparsec.oneOf (['a'..'z'] ++ ['A'..'Z'] ++ "|&?%^*#~.<>+=-$/:'" :: String)
+        symbol    <- Mp.some $ Mp.oneOf $ ['a'..'z'] ++ ['A'..'Z'] ++ "|&?%^*#~.<>+=-$/:'"
         tickClose <- chunk "`"
         return (tickOpen, symbol, tickClose)
 
--- TODO: We need to parse only markdown cells
+-- TODO:
+--
+-- cases that don't work:
+-- infix backtick functions like `elem` in code blocks. we're going to
+-- need to only search in "cell-type":"markdown".
+--
+-- We need to parse only markdown cells, like:
 --  {
 --    "cell_type": "markdown",
 --    "metadata": {},
