@@ -29,10 +29,6 @@
 
       Then open this link in your browser: [http://localhost:8888?token=x](http://localhost:8888?token=x)
 
----
-
-![Screenshot](README.screenshot.png)
-
 # 강좌 내용
 
 * 강좌 소개
