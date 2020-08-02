@@ -3,12 +3,12 @@
 하스켈 프로그래밍의 기초를 소개한다.
 참고 자료는 다음과 같다.
 
-* 기본: [__*Learn You a Haskell for Great Good!*__](http://learnyouahaskell.com/)
+* 기본: [__Learn You a Haskell for Great Good!__](http://learnyouahaskell.com/)
     * 저자: Miran Lipovača
 * 참고자료
     * [A Gentle Introduction To Haskell](https://www.haskell.org/tutorial/)
         * 저자: Paul Hudak, John Peterson, and Joseph Fasel
-    * [__*Programming in Haskell*__](https://www.cambridge.org/core/books/programming-in-haskell/8FED82E807EF12D390DE0D16FDE217E4)
+    * [__Programming in Haskell__](https://www.cambridge.org/core/books/programming-in-haskell/8FED82E807EF12D390DE0D16FDE217E4)
         * 저자: Graham Hutton
 * 프로그래밍 환경
     * [GHCi](https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/ghci.html) + [IHaskell](https://github.com/gibiansky/IHaskell)
