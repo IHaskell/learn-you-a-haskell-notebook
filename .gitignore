@@ -1,8 +1,8 @@
-notebook/*.txt
-notebook/Geometry.dyn_hi
-notebook/Geometry.dyn_o
-notebook/Geometry.hi
-notebook/Geometry.hs
-notebook/Geometry.o
-notebook/Geometry/
-notebook/.ipynb_checkpoints
+notebooks/*.txt
+notebooks/Geometry.dyn_hi
+notebooks/Geometry.dyn_o
+notebooks/Geometry.hi
+notebooks/Geometry.hs
+notebooks/Geometry.o
+notebooks/Geometry/
+notebooks/.ipynb_checkpoints
