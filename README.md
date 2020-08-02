@@ -43,7 +43,7 @@ Thanks also to Paul Vorbach for <https://github.com/pvorb/learn-you-a-haskell>.
 
 # 도커 및 주피터 노트북 안내
 
-제공되는 mybinder 서버와 도커 이미지는 James Brock이 [GitHub:learn-you-a-haskell-notebook](https://github.com/jamesdbrock/learn-you-a-haskell-notebook)에서 제공한 것을 내용만 수정하여 그대로 사용한다. 주피터 노트북에 사용되는 하스켈 해석기는 [GHCi](https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/ghci.html)를 사용하는 Andrew Gibiansky의 [IHaskell](https://github.com/gibiansky/IHaskell)이다. 
+제공되는 mybinder 서버와 도커 이미지는 James Brock이 [learn-you-a-haskell-notebook](https://github.com/jamesdbrock/learn-you-a-haskell-notebook)에서 제공한 것을 내용만 수정하여 그대로 사용한다. 주피터 노트북에 사용되는 하스켈 해석기는 [GHCi](https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/ghci.html)를 Jupyet Project에 적용한 Andrew Gibiansky의 [IHaskell](https://github.com/gibiansky/IHaskell)이다. 
 
 도커와 도커 이미지 활용에 대한 간단한 사용법은 아래 사이트를 참조한다.
 
