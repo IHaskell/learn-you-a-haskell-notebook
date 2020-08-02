@@ -10,10 +10,10 @@ FROM crosscompass/ihaskell-notebook:8b7eb58cec8d
 
 USER root
 
-RUN mkdir /home/$NB_USER/learn_you_a_haskell
-COPY notebook/*.ipynb /home/$NB_USER/learn_you_a_haskell/
-COPY notebook/img /home/$NB_USER/learn_you_a_haskell/img
-RUN chown --recursive $NB_UID:users /home/$NB_USER/learn_you_a_haskell
+RUN mkdir /home/$NB_USER/learning_haskell_programming
+COPY notebooks/*.ipynb /home/$NB_USER/learning_haskell_programming/
+COPY notebooks/images /home/$NB_USER/learning_haskell_programming/images
+RUN chown --recursive $NB_UID:users /home/$NB_USER/learning_haskell_programming
 
 USER $NB_UID
 
