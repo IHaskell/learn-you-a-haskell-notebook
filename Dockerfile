@@ -12,7 +12,7 @@ USER root
 
 RUN mkdir /home/$NB_USER/learning_haskell_programming
 COPY notebooks/*.ipynb /home/$NB_USER/learning_haskell_programming/
-COPY notebooks/images /home/$NB_USER/learning_haskell_programming/images
+COPY notebooks/img /home/$NB_USER/learning_haskell_programming/img
 RUN chown --recursive $NB_UID:users /home/$NB_USER/learning_haskell_programming
 
 USER $NB_UID
