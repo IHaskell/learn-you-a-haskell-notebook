@@ -20,30 +20,33 @@ Miran Lipovača wrote this book and released it to the world under a [Creative C
 
 Thanks also to Paul Vorbach for <https://github.com/pvorb/learn-you-a-haskell>.
 
-# How to run locally
+# How to run on your local computer:
 
-Clone this repository, then run this `docker` command in a shell:
+Clone this repository with `git` and `cd` into the cloned directory
 
 ```bash
 git clone https://github.com/jamesdbrock/learn-you-a-haskell-notebook.git
 cd learn-you-a-haskell-notebook
-docker run --rm \
-      -p 8888:8888 \
-      -v $PWD/notebook:/home/jovyan/work \
-      --env JUPYTER_ENABLE_LAB=yes \
-      --env JUPYTER_TOKEN=x \
-      --name learn-you-a-haskell \
-      crosscompass/ihaskell-notebook:latest
 ```
 
-Then open this link in your browser: [http://localhost:8888?token=x](http://localhost:8888?token=x)
+then run this `docker` command in a shell
+
+```bash
+docker run --rm -p 8888:8888 -v $PWD/notebook:/home/jovyan/work --name learn-you-a-haskell crosscompass/ihaskell-notebook:latest jupyter lab --LabApp.token=''
+```
+
+then open [http://localhost:8888](http://localhost:8888) to read the book.
 
 # How to edit notebooks
 
-If you make an improvement to a notebook and you want to commit the changes, then
+If you make an improvement to a notebook `.ipynb` file and you want to commit the changes and make a pull request to the repository,
 
 1. Maximize the browser window to full screen width, because cell horizontal scroll bar visibility gets saved in the notebook.
 
 2. Run -> Restart kernel and Run All Cells...
 
 3. Save the notebook.
+
+# ihaskell-notebook
+
+For more information about the IHaskell Docker image, see <https://github.com/jamesdbrock/ihaskell-notebook>
