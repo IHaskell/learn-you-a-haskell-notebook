@@ -37,9 +37,15 @@ docker run --rm -p 8888:8888 -v $PWD/notebook:/home/jovyan/work --name learn-you
 
 then open [http://localhost:8888](http://localhost:8888) to read the book.
 
+For `podman`, try
+
+```bash
+podman run --privileged --userns=keep-id --rm -p 8888:8888 -v $PWD/notebook:/home/jovyan/work --name learn-you-a-haskell crosscompass/ihaskell-notebook:latest jupyter lab --LabApp.token=''
+```
+
 # How to edit notebooks
 
-If you make an improvement to a notebook `.ipynb` file and you want to commit the changes and make a pull request to the repository,
+If you make an improvement to a notebook `.ipynb` file and you want to save the file and commit the changes and make a pull request to the repository,
 
 1. Maximize the browser window to full screen width, because cell horizontal scroll bar visibility gets saved in the notebook.
 
