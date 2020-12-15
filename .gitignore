@@ -1,8 +1,9 @@
-notebooks/*.txt
-notebooks/Geometry.dyn_hi
-notebooks/Geometry.dyn_o
-notebooks/Geometry.hi
-notebooks/Geometry.hs
-notebooks/Geometry.o
-notebooks/Geometry/
+*.bak
+*.bak.*
+*.ckpt
+*.old
+*.pyc
+.DS_Store
+.ipynb_checkpoints
 notebooks/.ipynb_checkpoints
+checkpoint
