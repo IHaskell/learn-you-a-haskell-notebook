@@ -27,7 +27,7 @@
 ## 학습내용 및 프로그래밍 환경
 
 학습 내용 및 프로그래밍 환경, 도커(Docker), 주피터 노트북 등 학습환경과 관련된 자세한 사항은 
-[강의 홈페이지](https://prologma.github.io/learn-you-a-haskell/)에서
+[강좌 홈페이지](https://prologma.github.io/learn-you-a-haskell/)에서
 확인할 수 있습니다. 
 
 ## 감사의 말(Acknowledgement)
