@@ -29,7 +29,7 @@
 1. 소개
 1. ...
 
-## 학습 및 프로그래밍 환경
+### 학습 및 프로그래밍 환경
 
 [깃허브 원격저장소(repository)](https://github.com/prologma/learn-you-a-haskell)를 PC에 복제한 후 도커([Docker](https://www.docker.com/products/docker-desktop)) 이미지를 활용하는 것을 추천합니다.
 
