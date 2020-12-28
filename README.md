@@ -1,6 +1,6 @@
 # 하스켈 프로그래밍 배우기
 
-"하스켈 프로프로그래밍 배우기"는 '**프로그래밍, 수리논리, 수학은 하나다**' 라는 주제하에 진행되는 
+"하스켈 프로그래밍 배우기"는 '**프로그래밍, 수리논리, 수학은 하나다**' 라는 주제하에 진행되는 
 강좌 시리즈의 첫번째 강좌이며, 하스켈 프로그래밍을 먼저 소개하는 이유는 다음과 같습니다.
 
 * 프로그래밍 기초 학습
@@ -11,7 +11,7 @@
 [Creative Commons Attribution-Noncommercial-Share Alike 3.0 Unported License](https://creativecommons.org/licenses/by-nc-sa/3.0/deed.ko) 조건으로
 무료 공개된 Miran Lipova&ccaron;a의
 [Learn You a Haskell for Great Good!](http://learnyouahaskell.com/)을
-기본으로 하면서 아래 자료를 참조한 내용을 담고 있습니다.
+기본으로 하면서 다음 자료를 참조한 내용을 담고 있습니다.
 
 * [A Gentle Introduction To Haskell](https://www.haskell.org/tutorial/), 
     Paul Hudak, John Peterson, and Joseph Fasel
@@ -26,7 +26,7 @@
 
 ## 프로그래밍 환경
 
-리포지토리를 복제 한 후 도커([Docker](https://www.docker.com/products/docker-desktop)) 이미지를 활용한느 것을 추천합니다.
+리포지토리를 PC에 복제한 후 도커([Docker](https://www.docker.com/products/docker-desktop)) 이미지를 활용하는 것을 추천합니다.
 
 * 도커 이미지 설치는 터미널을 이용하여 아래와 같이 진행
 
