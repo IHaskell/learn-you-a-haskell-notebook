@@ -54,7 +54,7 @@
 * 주피터 노트북의 간단한 사용법: [Jupyter Notebook 사용법](https://www.youtube.com/watch?v=4_-IIfbdR5M)
 
 ## 감사의 말(Acknowledgement)
-제공되는 mybinder의 서버와 도커 이미지는 James Brock의 
+<p>제공되는 mybinder의 서버와 도커 이미지는 James Brock의 
 [learn-you-a-haskell-notebook](https://github.com/jamesdbrock/learn-you-a-haskell-notebook)에서 
 제공한 것을 활용합니다.
 주피터 노트북 서버에 사용되는 하스켈 해석기는 
@@ -62,4 +62,4 @@
 Jupyter Project에 적용한 Andrew Gibiansky의 
 [IHaskell](https://github.com/gibiansky/IHaskell)입니다.
 [Learn You a Haskell for Great Good!](http://learnyouahaskell.com/) 책을 무료로 공개한
-Miran Lipova&ccaron;a를 포함하여 세 사람에게 무한한 감사를 드립니다.
+Miran Lipova&ccaron;a를 포함하여 세 사람에게 무한한 감사를 드립니다.</p>
