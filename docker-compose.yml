@@ -10,5 +10,5 @@ services:
      restart: always
      environment:
       JUPYTER_ENABLE_LAB: "yes"
-      JUPYTER_TOKEN: x
+      JUPYTER_TOKEN:
 
