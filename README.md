@@ -51,7 +51,7 @@
         실행 결과나 변경 사항이 저장되지는 않음.
         주피터 노트북을 수정한 후 저장하려면 앞서 추천한 도커 이미지 활용법을 사용해야 함.
 
-* 안내사항: 제공되는 mybinder의 서버와 도커 이미지는 James Brock의 
+* 감사(Acknowledgement): 제공되는 mybinder의 서버와 도커 이미지는 James Brock의 
     [learn-you-a-haskell-notebook](https://github.com/jamesdbrock/learn-you-a-haskell-notebook)에서 
     제공한 것을 활용함.
     주피터 노트북 서버에 사용되는 하스켈 해석기는 
