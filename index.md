@@ -7,11 +7,11 @@
 * 유형이론(type theory) 기초 활용
 * 수학과 프로그래밍의 연관성 소개
 
-다루는 내용은 
-[Creative Commons Attribution-Noncommercial-Share Alike 3.0 Unported License](https://creativecommons.org/licenses/by-nc-sa/3.0/deed.ko) 조건으로
-무료 공개된 Miran Lipova&ccaron;a의
-[Learn You a Haskell for Great Good!](http://learnyouahaskell.com/)을
-기본으로 하면서 아래 자료를 참조한 내용을 담고 있습니다.
+<p>다루는 내용은 
+    <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/deed.ko">Creative Commons Attribution-Noncommercial-Share Alike 3.0 Unported License</a>
+    조건으로 무료 공개된 Miran Lipova&ccaron;a의
+    <a href="http://learnyouahaskell.com/">Learn You a Haskell for Great Good!</a>을
+    기본으로 하면서 다음 자료를 참조한 내용을 담고 있습니다.</p>
 
 * [A Gentle Introduction To Haskell](https://www.haskell.org/tutorial/), 
     Paul Hudak, John Peterson, and Joseph Fasel
