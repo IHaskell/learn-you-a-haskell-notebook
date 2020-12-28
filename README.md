@@ -24,9 +24,9 @@
 [learn-you-a-haskell-notebook](https://github.com/jamesdbrock/learn-you-a-haskell-notebook)을 
 포크(fork)한 것을 기본틀로 사용합니다.
 
-## 학습환경
+## 학습내용 및 프로그래밍 환경
 
-프로그래밍 환경, 도커, 주피터 노트북 등 학습환경과 관련된 사항은 
+학습 내용 및 프로그래밍 환경, 도커(Docker), 주피터 노트북 등 학습환경과 관련된 자세한 사항은 
 [강의 홈페이지](https://prologma.github.io/learn-you-a-haskell/)에서
 확인할 수 있습니다. 
 
