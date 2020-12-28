@@ -29,7 +29,7 @@
 1. 소개
 1. ...
 
-### 학습 및 프로그래밍 환경
+## 학습 및 프로그래밍 환경
 
 [깃허브 원격저장소(repository)](https://github.com/prologma/learn-you-a-haskell)를 PC에 복제한 후 도커([Docker](https://www.docker.com/products/docker-desktop)) 이미지를 활용하는 것을 추천합니다.
 
@@ -65,7 +65,7 @@
 * 주의사항: 주피터 노트북은 지원하지 않음. 대신에 위 Binder 서버의 주피터 노트북에서 설명하는 코드를 따라해볼 수 있음. 
     Visual Studio Code와 도커 이미지를 활용하는 방식에 비해 편집기능이 조금 불편하지만 무리없이 잘 활용할 수 있음.
 
-## 도커, 주피터 노트북, Visual Studio Code 소개, 설치 및 사용 관련 참고자료
+### 도커, 주피터 노트북, Visual Studio Code 소개, 설치 및 사용 관련 참고자료
 
 * 도커 소개: [도커가 왜 좋은지 5분안에 설명해줌](https://www.youtube.com/watch?v=ufLmReluPww)
 * 윈도우 10에서 도커 이미지를 활용한 개발환경 설정법: [윈도우 10에서 도커 + Visual Studio Code 사용법](./개발환경설정.md)
