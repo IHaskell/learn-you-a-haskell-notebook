@@ -10,7 +10,7 @@
 
 다루는 내용은 
 [Creative Commons Attribution-Noncommercial-Share Alike 3.0 Unported License](https://creativecommons.org/licenses/by-nc-sa/3.0/deed.ko) 조건으로
-무료로 공개된 Miran Lipovača의
+무료로 공개된 Miran Lipova&ccaron;a의
 [Learn You a Haskell for Great Good!](http://learnyouahaskell.com/)을
 기본으로 하면서 아래 자료를 참조한 내용을 담고 있다.
 
