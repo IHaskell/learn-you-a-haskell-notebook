@@ -24,12 +24,6 @@
 제공되는 주피터 노트북은 James Brock의 [learn-you-a-haskell-notebook](https://github.com/jamesdbrock/learn-you-a-haskell-notebook)을 
 포크(fork)한 것을 기본틀로 사용한다. 
 
-## 목차
-
-* 머리말
-* ...
-
-
 ## 프로그래밍 환경
 
 * (__추천__)리포지토리를 복제 한 후 도커([Docker](https://www.docker.com/products/docker-desktop)) 이미지 활용
@@ -51,13 +45,15 @@
         실행 결과나 변경 사항이 저장되지는 않음.
         주피터 노트북을 수정한 후 저장하려면 앞서 추천한 도커 이미지 활용법을 사용해야 함.
 
-* 감사(Acknowledgement): 제공되는 mybinder의 서버와 도커 이미지는 James Brock의 
+## 감사의 말(Acknowledgement)
+    제공되는 mybinder의 서버와 도커 이미지는 James Brock의 
     [learn-you-a-haskell-notebook](https://github.com/jamesdbrock/learn-you-a-haskell-notebook)에서 
     제공한 것을 활용함.
     주피터 노트북 서버에 사용되는 하스켈 해석기는 
     [GHCi](https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/ghci.html)를 
     Jupyter Project에 적용한 Andrew Gibiansky의 
     [IHaskell](https://github.com/gibiansky/IHaskell)임. 
+    모든 자료를 공개한 세 분에게 무한한 감사를 드림.
 
 ## 도커와 주피터 노트북 소개, 설치 및 사용 관련 참고자료
 
