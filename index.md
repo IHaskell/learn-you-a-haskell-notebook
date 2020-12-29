@@ -33,7 +33,7 @@
 
 ### 추천 환경
 
-[깃허브 원격저장소(repository)](https://github.com/prologma/learn-you-a-haskell)를 PC에 복제한 후 도커([Docker](https://www.docker.com/products/docker-desktop)) 이미지를 활용하는 것을 추천합니다.
+[깃허브 원격저장소(repository)](https://github.com/prologma/learn-you-a-haskell)를 PC에 복제하여 도커(Docker) 이미지와 함께 활용할 것을 추천합니다.
 
 * 도커 이미지 설치는 터미널을 이용하여 아래와 같이 진행
 
