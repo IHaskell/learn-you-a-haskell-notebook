@@ -71,8 +71,8 @@
 
 ### 도커, 주피터 노트북, Visual Studio Code 소개, 설치 및 사용 관련 참고자료
 
-* 도커 소개: [도커가 왜 좋은지 5분안에 설명해줌](https://www.youtube.com/watch?v=ufLmReluPww)
 * 윈도우 10에서 도커 이미지를 활용한 개발환경 설정법: [윈도우 10에서 도커 + Visual Studio Code 사용법](./개발환경설정.md)
+* 도커 소개: [도커가 왜 좋은지 5분안에 설명해줌](https://www.youtube.com/watch?v=ufLmReluPww)
 * 주피터 노트북의 간단한 사용법: [Jupyter Notebook 사용법](https://www.youtube.com/watch?v=4_-IIfbdR5M)
 
 ## 감사의 말(Acknowledgement)
