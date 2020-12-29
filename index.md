@@ -35,11 +35,16 @@
 
 [깃허브 원격저장소(repository)](https://github.com/prologma/learn-you-a-haskell)를 PC에 복제하여 도커(Docker) 이미지와 함께 활용할 것을 추천합니다.
 
-* 도커 이미지 설치는 터미널을 이용하여 아래와 같이 진행
+* 깃허브 원격저장소 복제하기
 
     ```bash
     git clone https://github.com/prologma/learn-you-a-hakell.git
     cd learn-you-a-haskell
+    ```
+
+* 도커 이미지 설치
+
+    ```bash
     docker run --rm -p 8888:8888 -v $PWD:/home/jovyan/work --name learn-you-a-haskell crosscompass/ihaskell-notebook:latest jupyter lab --LabApp.token=''
     ```
 
