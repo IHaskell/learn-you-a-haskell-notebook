@@ -1,30 +1,7 @@
 # 하스켈 프로그래밍 배우기
 
 "하스켈 프로그래밍 배우기"는 '**프로그래밍, 수리논리, 수학은 하나다**' 라는 주제하에 진행되는 
-강좌 시리즈의 첫번째 강좌이며, 하스켈 프로그래밍을 먼저 소개하는 이유는 다음과 같습니다.
-
-* 프로그래밍 기초 학습
-* 유형이론(type theory) 기초 활용
-* 수학과 프로그래밍의 연관성 소개
-
-다루는 내용은 
-[Creative Commons Attribution-Noncommercial-Share Alike 3.0 Unported License](https://creativecommons.org/licenses/by-nc-sa/3.0/deed.ko) 조건으로
-무료 공개된 Miran Lipova&ccaron;a의
-[Learn You a Haskell for Great Good!](http://learnyouahaskell.com/)을
-기본으로 하면서 다음 자료를 참조한 내용을 담고 있습니다.
-
-* [A Gentle Introduction To Haskell](https://www.haskell.org/tutorial/), 
-    Paul Hudak, John Peterson, and Joseph Fasel
-* [Programming in Haskell](https://www.cambridge.org/core/books/programming-in-haskell/8FED82E807EF12D390DE0D16FDE217E4), 
-    Graham Hutton
-* [The Haskell Road to Logic, Maths and Programming](https://staff.fnwi.uva.nl/d.j.n.vaneijck2/HR/), 
-    Kees Doets and Jan van Eijck
-
-함께 제공되는 주피터 노트북은 James Brock의 
-[learn-you-a-haskell-notebook](https://github.com/jamesdbrock/learn-you-a-haskell-notebook)을 
-포크(fork)한 것을 기본틀로 사용합니다.
-
-## 학습내용 및 프로그래밍 환경
+강좌 시리즈의 첫번째 강좌입니다. 
 
 학습 내용 및 프로그래밍 환경, 도커(Docker), 주피터 노트북 등 학습환경과 관련된 자세한 사항은 
 [강좌 홈페이지](https://prologma.github.io/learn-you-a-haskell/)에서
