@@ -6,7 +6,7 @@
 [강좌 홈페이지](https://prologma.github.io/learn-you-a-haskell/)에서
 확인할 수 있습니다. 
 
-## 감사의 말(Acknowledgement)
+#### 감사의 말(Acknowledgement)
 <p>제공되는 mybinder의 서버와 도커 이미지는 James Brock의 
 <a href="https://github.com/jamesdbrock/learn-you-a-haskell-notebook">learn-you-a-haskell-notebook</a>에서 
 제공한 것을 활용합니다.
