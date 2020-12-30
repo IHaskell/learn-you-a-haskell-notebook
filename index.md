@@ -50,10 +50,10 @@
 * 도커 이미지 설치
 
     ```bash
-    docker run --rm -p 8888:8888 -v $PWD:/home/jovyan/work --name learn-you-a-haskell crosscompass/ihaskell-notebook:latest jupyter lab --LabApp.token=''
+    docker run --rm -p 8888:8888 -v $PWD/notebooks:/home/jovyan/work --name learn-you-a-haskell crosscompass/ihaskell-notebook:latest jupyter lab --LabApp.token=''
     ```
 
-* 위 과정을 마친 후 크롬 브라우저 등을 이용하여 다음 주소 `http://localhost:8888` 방문.
+* 위 과정을 마친 후 크롬 브라우저 등을 이용하여 다음 주소 `http://localhost:8888` 방문한 후 `work` 디렉토리를 열면 주피터 노트북을 사용할 수 있음.
     또한 Visual Studio Code를 도커 이미지에 연결하여 주피터 노트북 내용을 따라 학습할 수 있음.
     구체적인 활용법은 [참고자료](./개발환경설정.md)에서 설명됨.
     
