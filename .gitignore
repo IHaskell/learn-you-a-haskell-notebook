@@ -2,7 +2,6 @@
 *.bak.*
 *.ckpt
 *.old
-*.pyc
 .DS_Store
 .ipynb_checkpoints
 notebooks/.ipynb_checkpoints
