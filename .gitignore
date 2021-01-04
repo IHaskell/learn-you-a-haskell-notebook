@@ -6,4 +6,5 @@
 .DS_Store
 .ipynb_checkpoints
 notebooks/.ipynb_checkpoints
+notebooks_translation/.ipynb_checkpoints
 checkpoint
