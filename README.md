@@ -32,7 +32,7 @@ cd learn-you-a-haskell-notebook
 then run this `docker` command in a shell
 
 ```bash
-docker run --rm -p 8888:8888 -v $PWD/notebook:/home/jovyan/work --name learn-you-a-haskell crosscompass/ihaskell-notebook:latest jupyter lab --LabApp.token=''
+docker run --rm -p 8888:8888 -v $PWD/notebook:/home/jovyan/work --name learn-you-a-haskell ghcr.io/jamesdbrock/ihaskell-notebook:master jupyter lab --LabApp.token=''
 ```
 
 then open [http://localhost:8888](http://localhost:8888) to read the book.
@@ -40,7 +40,7 @@ then open [http://localhost:8888](http://localhost:8888) to read the book.
 For `podman`, try
 
 ```bash
-podman run --privileged --userns=keep-id --rm -p 8888:8888 -v $PWD/notebook:/home/jovyan/work --name learn-you-a-haskell crosscompass/ihaskell-notebook:latest jupyter lab --LabApp.token=''
+podman run --privileged --userns=keep-id --rm -p 8888:8888 -v $PWD/notebook:/home/jovyan/work --name learn-you-a-haskell ghcr.io/jamesdbrock/ihaskell-notebook:master jupyter lab --LabApp.token=''
 ```
 
 # How to edit notebooks
