@@ -12,21 +12,14 @@
 	// Set *default* container specific settings.json values on container create.
 	"settings": {},
 
-	// markdown font size:
-	// https://github.com/microsoft/vscode/issues/126294
-
 	// Add the IDs of extensions you want installed when the container is created.
 	"extensions": [
-		// Bug in ms-toolsai.jupyter later versions:
-		//
-		//     Error loading preloads:
-		//     Could not find renderer
-		//
-		// https://stackoverflow.com/questions/68736618/error-loading-preloads-could-not-find-renderer
-		// https://github.com/microsoft/vscode/issues/123494
-		// https://github.com/microsoft/vscode-jupyter/issues/7045
-		"ms-toolsai.jupyter@2021.8.2025984474",
-		"haskell.haskell"
+		"ms-toolsai.jupyter",
+		"haskell.haskell",
+		"justusadam.language-haskell",
+        // A popup dialog pesters us to install the Python extension if it's not installed.
+        // I think this is needed to render errors.
+        "ms-python.python"
 	]
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
