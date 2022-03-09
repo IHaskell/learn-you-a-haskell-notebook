@@ -16,7 +16,7 @@ In 2019, the [Jupyter](https://jupyter.org/) notebook format would be a nice way
 Each chapter of the book is one `.ipynb` Jupyter notebook file. See the list of chapter files on the left sidebar in JupyterLab.
 
 Each notebook cell depends on cells that come before it, so run the notebooks from top to bottom. I have refactored code to make the examples work in Jupyter, and removed instructions for how to use GHCI. Other than that I have tried to be faithful to the original text.
- 
+
 Miran Lipovača wrote this book and released it to the world under a [Creative Commons Attribution-Noncommercial-Share Alike 3.0 Unported License](http://creativecommons.org/licenses/by-nc-sa/3.0/), which means that the book is free-as-in-speech, and allows us to enjoy the book in notebook format. But that does not mean that the book is free-as-in-beer; it means that you, dear reader, pay for the book under the honor system. If you are honorable and you want to keep living in a world in which honorable artists license their art as Creative Commons, then [buy the book](http://learnyouahaskell.com/).
 
 Thanks also to Paul Vorbach for <https://github.com/pvorb/learn-you-a-haskell>.
@@ -75,6 +75,11 @@ For `podman`, try
 
 ```bash
 podman run --privileged --userns=keep-id --rm -p 8888:8888 -v $PWD/notebook:/home/jovyan/work --name learn-you-a-haskell ghcr.io/jamesdbrock/ihaskell-notebook:master jupyter lab --LabApp.token=''
+```
+
+Running via the nix package manager:
+```
+nix run github:jamesdbrock/learn-you-a-haskell-notebook
 ```
 
 # How to edit notebooks
