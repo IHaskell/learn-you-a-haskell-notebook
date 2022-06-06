@@ -20,7 +20,7 @@
       }));
 
     iHaskell = pkgs: pkgs.kernels.iHaskellWith {
-      name = "leran-you-a-haskell";
+      name = "learn-you-a-haskell";
       packages = p: with p; [ hvega formatting ];
     };
 
