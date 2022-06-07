@@ -63,24 +63,31 @@ git clone https://github.com/jamesdbrock/learn-you-a-haskell-notebook.git
 cd learn-you-a-haskell-notebook
 ```
 
-then run this `docker` command in a shell
+Then here are three options for running.
 
-```bash
-docker run --rm -p 8888:8888 -v $PWD/notebook:/home/jovyan/work --name learn-you-a-haskell ghcr.io/jamesdbrock/ihaskell-notebook:master jupyter lab --LabApp.token=''
-```
+1. `docker`
 
-then open [http://localhost:8888](http://localhost:8888) to read the book.
+   ```bash
+   docker run --rm -p 8888:8888 -v $PWD/notebook:/home/jovyan/work --name learn-you-a-haskell ghcr.io/jamesdbrock/ihaskell-notebook:master jupyter lab --LabApp.token=''
+   ```
 
-For `podman`, try
+   then open [http://localhost:8888](http://localhost:8888) to read the book.
 
-```bash
-podman run --privileged --userns=keep-id --rm -p 8888:8888 -v $PWD/notebook:/home/jovyan/work --name learn-you-a-haskell ghcr.io/jamesdbrock/ihaskell-notebook:master jupyter lab --LabApp.token=''
-```
+2. `podman`
 
-Running via the nix package manager:
-```
-nix run github:jamesdbrock/learn-you-a-haskell-notebook
-```
+   ```bash
+   podman run --privileged --userns=keep-id --rm -p 8888:8888 -v $PWD/notebook:/home/jovyan/work --name learn-you-a-haskell ghcr.io/jamesdbrock/ihaskell-notebook:master jupyter lab --LabApp.token=''
+   ```
+
+   then open [http://localhost:8888](http://localhost:8888) to read the book.
+
+3. [NixOS](https://nixos.org/) flake
+
+   ```
+   nix run . -- --notebook-dir notebook
+   ```
+
+   then the book will open in a browser automatically. If it doesn’t, open the “running at” link.
 
 # How to edit notebooks
 
