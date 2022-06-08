@@ -51,8 +51,7 @@ The VS Code Notebook UI is
 [still a bit rough](https://code.visualstudio.com/blogs/2021/08/05/notebooks),
 here are some problems I’ve noticed:
 
-* The markdown text is [too small](https://github.com/microsoft/vscode/issues/126294).
-* Raw code cells are interpreted as normal code cells.
+* [Raw code cells are interpreted as normal code cells](https://github.com/microsoft/vscode-jupyter/issues/10357), so they will execute and fail.
 
 # How to run on your local computer in JupyterLab in a web browser
 
