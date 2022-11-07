@@ -3,10 +3,10 @@
 # Test this Dockerfile:
 #
 #     docker build -t learn-you-a-haskell .
-#     docker run --rm -p 8888:8888 --name learn-you-a-haskell learn-you-a-haskell:latest jupyter lab --LabApp.token=''
+#     docker run --rm -p 8888:8888 --name learn-you-a-haskell learn-you-a-haskell:latest jupyter lab --ServerApp.token=''
 #
 
-FROM ghcr.io/jamesdbrock/ihaskell-notebook:master@sha256:78e7f89d2ffc716da2ca46f4f02efcc3d3f26147c5f4603686dfff0c3a28dd3d
+FROM ghcr.io/ihaskell/ihaskell-notebook:master@sha256:7d8b0f2cf2d78afaa3088a31cafcec948408ac6bf228a6b73e001233ef40decf
 
 USER root
 
