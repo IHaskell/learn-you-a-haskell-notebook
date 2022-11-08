@@ -6,3 +6,4 @@ notebook/Geometry.hs
 notebook/Geometry.o
 notebook/Geometry/
 */.ipynb_checkpoints
+.jupyter/
