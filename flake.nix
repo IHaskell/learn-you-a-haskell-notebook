@@ -16,9 +16,7 @@
   inputs.flake-compat.flake = false;
   inputs.flake-utils.url = "github:numtide/flake-utils";
   inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-  # inputs.jupyenv.url = "github:tweag/jupyenv";
-  # https://github.com/tweag/jupyenv/pull/439
-  inputs.jupyenv.url = "github:jamesdbrock/jupyenv?rev=3278e4f8af0654e38aa9463480ebc5f15f084098";
+  inputs.jupyenv.url = "github:tweag/jupyenv";
 
   outputs = {
     self,

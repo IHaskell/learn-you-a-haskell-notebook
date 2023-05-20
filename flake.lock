@@ -214,17 +214,16 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1677042165,
-        "narHash": "sha256-SDLgxS8I2aV/EnJCnM+7SzTRWw/RR6Ws5YaSp0bfVV8=",
-        "owner": "jamesdbrock",
+        "lastModified": 1678277947,
+        "narHash": "sha256-LS3mlQUMGa+qCpGRCUAYn40p8ji4STWsQiBq4xnXNhA=",
+        "owner": "tweag",
         "repo": "jupyenv",
-        "rev": "3278e4f8af0654e38aa9463480ebc5f15f084098",
+        "rev": "ffa7ec777a10cab46bd1b127c55ab096436e8572",
         "type": "github"
       },
       "original": {
-        "owner": "jamesdbrock",
+        "owner": "tweag",
         "repo": "jupyenv",
-        "rev": "3278e4f8af0654e38aa9463480ebc5f15f084098",
         "type": "github"
       }
     },
@@ -336,11 +335,11 @@
     },
     "nixpkgs_3": {
       "locked": {
-        "lastModified": 1676721149,
-        "narHash": "sha256-mN2EpTGxxVNnFZLoLWRwh6f7UWhXy4qE+wO2CZyrXps=",
+        "lastModified": 1678293141,
+        "narHash": "sha256-lLlQHaR0y+q6nd6kfpydPTGHhl1rS9nU9OQmztzKOYs=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "5f4e07deb7c44f27d498f8df9c5f34750acf52d2",
+        "rev": "c90c4025bb6e0c4eaf438128a3b2640314b1c58d",
         "type": "github"
       },
       "original": {
