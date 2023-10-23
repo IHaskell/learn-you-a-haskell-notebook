@@ -26,12 +26,8 @@
     jupyenv,
     ...
   } @ inputs:
-    flake-utils.lib.eachSystem
-    [
-      flake-utils.lib.system.x86_64-linux
-    ]
-    (
-      system: let
+    flake-utils.lib.eachDefaultSystem (system:
+      let
         inherit (jupyenv.lib.${system}) mkJupyterlabNew;
         jupyterlab = mkJupyterlabNew ({...}: {
           nixpkgs = inputs.nixpkgs;
