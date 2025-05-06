@@ -6,7 +6,7 @@
 #     docker run --rm -p 8888:8888 --name learn-you-a-haskell learn-you-a-haskell:latest jupyter lab --ServerApp.token=''
 #
 
-FROM ghcr.io/ihaskell/ihaskell-notebook:master@sha256:d6d694711a3930be5439bfff3d82c3ff214ae0d13a1a8c9af104084d5ac3b89b
+FROM ghcr.io/ihaskell/ihaskell-notebook:master@sha256:3619fe7a14c8c17e196760377ef3500a1f8db32c9c51ce83c41b4e213a97f1bf
 
 USER root
 
