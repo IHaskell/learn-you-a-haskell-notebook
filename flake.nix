@@ -1,43 +1,52 @@
-# Initialized with
-#
-#    nix flake init --template github:tweag/jupyenv
-#
 {
   description = "Learn You a Haskell for Great Good! Jupyter adaptation";
 
-  nixConfig.extra-substituters = [
-    "https://tweag-jupyter.cachix.org"
-  ];
-  nixConfig.extra-trusted-public-keys = [
-    "tweag-jupyter.cachix.org-1:UtNH4Zs6hVUFpFBTLaA4ejYavPo5EFFqgd7G7FxGW9g="
-  ];
-
-  inputs.flake-compat.url = "github:edolstra/flake-compat";
-  inputs.flake-compat.flake = false;
   inputs.flake-utils.url = "github:numtide/flake-utils";
-  inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-  inputs.jupyenv.url = "github:tweag/jupyenv";
+  inputs.IHaskell.url = "github:IHaskell/IHaskell";
+
+  nixConfig = {
+    extra-substituters = [ "https://ihaskell.cachix.org" ];
+    extra-trusted-public-keys = [ "ihaskell.cachix.org-1:WoIvex/Ft/++sjYW3ntqPUL3jDGXIKDpX60pC8d5VLM="];
+  };
 
   outputs = {
     self,
-    flake-compat,
     flake-utils,
-    nixpkgs,
-    jupyenv,
+    IHaskell,
     ...
   } @ inputs:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        inherit (jupyenv.lib.${system}) mkJupyterlabNew;
-        jupyterlab = mkJupyterlabNew ({...}: {
-          nixpkgs = inputs.nixpkgs;
-          imports = [(import ./kernels.nix)];
-        });
+        pkgs = IHaskell.inputs.nixpkgs24_11.legacyPackages.${system};
+
+        ihaskell-env = IHaskell.packages.${system}.ihaskell-env-display-ghc98;
+        notebook-lyah = pkgs.stdenv.mkDerivation {
+          name = "notebook-lyah";
+          src = ./notebook;
+          phases = [ "unpackPhase" "installPhase" ];
+          installPhase = ''
+            mkdir -p $out
+            cp -r $src/* $out/
+          '';
+        };
       in rec {
-        packages = {inherit jupyterlab;};
-        packages.default = jupyterlab;
-        apps.default.program = "${jupyterlab}/bin/jupyter-lab";
-        apps.default.type = "app";
+        packages = {
+          inherit ihaskell-env notebook-lyah;
+        };
+        apps = {
+          default =
+            let
+              script = pkgs.writeShellApplication {
+                name = "jupyter-lab-lyah";
+                runtimeInputs = [ ihaskell-env notebook-lyah ];
+                text = "jupyter lab --notebook-dir=${notebook-lyah} ${notebook-lyah}/00-preface.ipynb";
+              };
+            in
+            {
+              type = "app";
+              program = "${script}/bin/jupyter-lab-lyah";
+            };
+        };
       }
     );
 }
